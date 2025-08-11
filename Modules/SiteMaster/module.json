@@ -1,0 +1,11 @@
+{
+    "name": "SiteMaster",
+    "alias": "sitemaster",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\SiteMaster\\Providers\\SiteMasterServiceProvider"
+    ],
+    "files": []
+}

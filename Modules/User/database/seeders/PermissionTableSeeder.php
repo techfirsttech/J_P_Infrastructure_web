@@ -1,0 +1,97 @@
+<?php
+
+namespace Modules\User\Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+
+class PermissionTableSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $permissions = [
+            ['title_tag' => 'Role', 'title' => 'List', 'name' => 'role-list'],
+            ['title_tag' => 'Role', 'title' => 'Create', 'name' => 'role-create'],
+            ['title_tag' => 'Role', 'title' => 'Edit', 'name' => 'role-edit'],
+            ['title_tag' => 'Role', 'title' => 'Delete', 'name' => 'role-delete'],
+
+            ['title_tag' => 'User', 'title' => 'List', 'name' => 'users-list'],
+            ['title_tag' => 'User', 'title' => 'Create', 'name' => 'users-create'],
+            ['title_tag' => 'User', 'title' => 'Edit', 'name' => 'users-edit'],
+            ['title_tag' => 'User', 'title' => 'Delete', 'name' => 'users-delete'],
+
+            ['title_tag' => 'User_Assign', 'title' => 'List', 'name' => 'assign-user-list'],
+            ['title_tag' => 'User_Assign', 'title' => 'Create', 'name' => 'assign-user-create'],
+
+            ['title_tag' => 'Password_Change', 'name' => 'password-change', 'title' => 'Change'],
+
+            ['title_tag' => 'Setting', 'title' => 'Create', 'name' => 'setting'],
+
+            ['title_tag' => 'Menu', 'title' => 'List', 'name' => 'menu-list'],
+            ['title_tag' => 'Menu', 'title' => 'Create', 'name' => 'menu-create'],
+            ['title_tag' => 'Menu', 'title' => 'Edit', 'name' => 'menu-edit'],
+            ['title_tag' => 'Menu', 'title' => 'Delete', 'name' => 'menu-delete'],
+
+            ['title_tag' => 'Country', 'title' => 'List', 'name' => 'country-list'],
+            ['title_tag' => 'Country', 'title' => 'Create', 'name' => 'country-create'],
+            ['title_tag' => 'Country', 'title' => 'Edit', 'name' => 'country-edit'],
+            ['title_tag' => 'Country', 'title' => 'Delete', 'name' => 'country-delete'],
+
+            ['title_tag' => 'State', 'title' => 'List', 'name' => 'state-list'],
+            ['title_tag' => 'State', 'title' => 'Create', 'name' => 'state-create'],
+            ['title_tag' => 'State', 'title' => 'Edit', 'name' => 'state-edit'],
+            ['title_tag' => 'State', 'title' => 'Delete', 'name' => 'state-delete'],
+
+            ['title_tag' => 'City', 'title' => 'List', 'name' => 'city-list'],
+            ['title_tag' => 'City', 'title' => 'Create', 'name' => 'city-create'],
+            ['title_tag' => 'City', 'title' => 'Edit', 'name' => 'city-edit'],
+            ['title_tag' => 'City', 'title' => 'Delete', 'name' => 'city-delete'],
+
+            ['title_tag' => 'Unit', 'title' => 'List', 'name' => 'unit-list'],
+            ['title_tag' => 'Unit', 'title' => 'Create', 'name' => 'unit-create'],
+            ['title_tag' => 'Unit', 'title' => 'Edit', 'name' => 'unit-edit'],
+            ['title_tag' => 'Unit', 'title' => 'Delete', 'name' => 'unit-delete'],
+
+            ['title_tag' => 'Year', 'name' => 'year-list', 'title' => 'List'],
+            ['title_tag' => 'Year', 'name' => 'year-create', 'title' => 'Create'],
+            ['title_tag' => 'Year', 'name' => 'year-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Year', 'name' => 'year-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Currency', 'name' => 'currency-list', 'title' => 'List'],
+            ['title_tag' => 'Currency', 'name' => 'currency-create', 'title' => 'Create'],
+            ['title_tag' => 'Currency', 'name' => 'currency-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Currency', 'name' => 'currency-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Category', 'name' => 'category-list', 'title' => 'List'],
+            ['title_tag' => 'Category', 'name' => 'category-create', 'title' => 'Create'],
+            ['title_tag' => 'Category', 'name' => 'category-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Category', 'name' => 'category-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Expense_Category', 'name' => 'expense-category-list', 'title' => 'List'],
+            ['title_tag' => 'Expense_Category', 'name' => 'expense-category-create', 'title' => 'Create'],
+            ['title_tag' => 'Expense_Category', 'name' => 'expense-category-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Expense_Category', 'name' => 'expense-category-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Site_Master', 'name' => 'site-master-list', 'title' => 'List'],
+            ['title_tag' => 'Site_Master', 'name' => 'site-master-create', 'title' => 'Create'],
+            ['title_tag' => 'Site_Master', 'name' => 'site-master-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Site_Master', 'name' => 'site-master-delete', 'title' => 'Delete'],
+
+        ];
+
+        foreach ($permissions as $permissionData) {
+            $existingPermission = Permission::where('name', $permissionData['name'])->first();
+            if (!$existingPermission) {
+                Permission::create([
+                    'name' => $permissionData['name'],
+                    'title' => $permissionData['title'],
+                    'title_tag' => $permissionData['title_tag']
+                ]);
+            }
+        }
+    }
+}

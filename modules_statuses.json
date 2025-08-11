@@ -1,0 +1,17 @@
+{
+    "Role": true,
+    "User": true,
+    "MenuMaster": true,
+    "Year": true,
+    "Currency": true,
+    "Unit": true,
+    "Setting": true,
+    "Country": true,
+    "State": true,
+    "City": true,
+    "Login": true,
+    "Dashboard": true,
+    "ExpenseCategory": true,
+    "Category": true,
+    "SiteMaster": true
+}

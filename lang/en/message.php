@@ -1,0 +1,66 @@
+<?php
+
+return [
+
+    'English' => 'English',
+    'Hindi' => 'Hindi',
+    'Gujarati' => 'Gujarati',
+    'Language' => 'Language',
+    'dashboard' => 'Dashboard',
+    'general_master' => 'General',
+    'raw_material' => 'Raw Material',
+
+    //common
+    'common.action' => 'Action',
+    'common.add' => 'Add',
+    'common.reset' => 'Reset',
+    'common.addNew' => 'Add New',
+    'common.cancel' => 'Cancel',
+    'common.submit' => 'Submit',
+    'common.update' => 'Update',
+    'common.add_more' => 'Add More',
+    'common.back' => 'Back',
+    'common.select' => '-- Select --',
+    'common.priority' => 'Priority',
+    'common.enter_priority' => 'Enter Priority',
+    'common.status' => 'Status',
+
+    'common.total' => 'Total',
+    'common.sub_total' => 'Sub Total',
+    'common.grand_total' => 'Grand Total',
+    'common.taxable' => 'Taxable Amt.',
+    'common.gst' => 'GST',
+    'common.gst_amount' => 'GST Amt.',
+    'common.igst' => 'IGST',
+    'common.ugst' => 'UGST',
+    'common.sgst' => 'SGST',
+    'common.cgst' => 'CGST',
+    'common.round_off' => 'Round Off',
+    'common.yes' => 'Yes',
+    'common.no' => 'No',
+    'products' => 'Products',
+    'common.active' => 'Active',
+    'common.inactive' => 'InActive',
+    'common.all' => 'All',
+    'common.enter_10_digits' => 'Enter at least 10 digits',
+    'common.enter_6_digits' => 'Enter at least 6 digits',
+    'common.enter_valid_number' => 'Enter valid number',
+    'common.country' => 'Country',
+    'common.state' => 'State',
+    'common.city' => 'City',
+    'common.start_date' => 'Start Date',
+    'common.end_date' => 'End Date',
+
+    'common.select_country' => "Select country",
+    'common.select_state' => "Select state",
+    'common.select_city' => "Select city",
+    'common.select_currency' => 'Select currency',
+
+    'common.tentative' => 'Tentative, May change upon save.',
+
+    'common.success' => 'Success',
+    'common.error' => 'Error',
+    'common.somethingWentWrong.PleaseTryAgain.' => 'Something went wrong. Please try again.',
+
+
+];
