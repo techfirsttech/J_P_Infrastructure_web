@@ -1,0 +1,11 @@
+{
+    "name": "PaymentMaster",
+    "alias": "paymentmaster",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PaymentMaster\\Providers\\PaymentMasterServiceProvider"
+    ],
+    "files": []
+}

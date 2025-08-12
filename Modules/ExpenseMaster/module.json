@@ -1,0 +1,11 @@
+{
+    "name": "ExpenseMaster",
+    "alias": "expensemaster",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ExpenseMaster\\Providers\\ExpenseMasterServiceProvider"
+    ],
+    "files": []
+}

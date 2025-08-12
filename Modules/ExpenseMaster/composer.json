@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/expensemaster",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ExpenseMaster\\": "app/",
+            "Modules\\ExpenseMaster\\Database\\Factories\\": "database/factories/",
+            "Modules\\ExpenseMaster\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\ExpenseMaster\\Tests\\": "tests/"
+        }
+    }
+}
