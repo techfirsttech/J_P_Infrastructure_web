@@ -13,5 +13,7 @@
     "Dashboard": true,
     "ExpenseCategory": true,
     "Category": true,
-    "SiteMaster": true
+    "SiteMaster": true,
+    "ExpenseMaster": true,
+    "PaymentMaster": true
 }
