@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 @section('title', __('user::message.edit'))
 @section('content')
     <div class="row">
@@ -243,4 +243,4 @@
         }
     });
 </script>
-@endsection
+@endsection --}}

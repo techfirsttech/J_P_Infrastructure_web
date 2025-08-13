@@ -1,0 +1,11 @@
+{
+    "name": "IncomeMaster",
+    "alias": "incomemaster",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\IncomeMaster\\Providers\\IncomeMasterServiceProvider"
+    ],
+    "files": []
+}

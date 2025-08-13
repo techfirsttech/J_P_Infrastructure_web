@@ -81,6 +81,32 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'Site_Master', 'name' => 'site-master-edit', 'title' => 'Edit'],
             ['title_tag' => 'Site_Master', 'name' => 'site-master-delete', 'title' => 'Delete'],
 
+            ['title_tag' => 'Expense_Master', 'name' => 'expense-master-list', 'title' => 'List'],
+            ['title_tag' => 'Expense_Master', 'name' => 'expense-master-create', 'title' => 'Create'],
+            ['title_tag' => 'Expense_Master', 'name' => 'expense-master-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Expense_Master', 'name' => 'expense-master-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Income_Master', 'name' => 'income-master-list', 'title' => 'List'],
+            ['title_tag' => 'Income_Master', 'name' => 'income-master-create', 'title' => 'Create'],
+            ['title_tag' => 'Income_Master', 'name' => 'income-master-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Income_Master', 'name' => 'income-master-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Payment_Master', 'name' => 'payment-master-list', 'title' => 'List'],
+            ['title_tag' => 'Payment_Master', 'name' => 'payment-master-create', 'title' => 'Create'],
+            ['title_tag' => 'Payment_Master', 'name' => 'payment-master-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Payment_Master', 'name' => 'payment-master-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Raw_Material_Category', 'name' => 'material-category-list', 'title' => 'List'],
+            ['title_tag' => 'Raw_Material_Category', 'name' => 'material-category-create', 'title' => 'Create'],
+            ['title_tag' => 'Raw_Material_Category', 'name' => 'material-category-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Raw_Material_Category', 'name' => 'material-category-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Raw_Material_Master', 'name' => 'material-master-list', 'title' => 'List'],
+            ['title_tag' => 'Raw_Material_Master', 'name' => 'material-master-create', 'title' => 'Create'],
+            ['title_tag' => 'Raw_Material_Master', 'name' => 'material-master-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Raw_Material_Master', 'name' => 'material-master-delete', 'title' => 'Delete'],
+
+
         ];
 
         foreach ($permissions as $permissionData) {

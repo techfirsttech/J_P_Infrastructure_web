@@ -67,6 +67,123 @@ if (!function_exists('imageUploadBase64')) {
     }
 }
 
+if (!function_exists('imageUploadFromBase64')) {
+    function imageUploadFromBase64($data)
+    {
+        $base64String   = $data['base64'];
+        $imageName      = $data['fileName'] ?? '';
+        $imageFolder    = rtrim($data['folder'], '/') . '/';
+        $imageThumFolder = rtrim($data['thumfolder'], '/') . '/';
+
+        if (!$base64String) {
+            return null;
+        }
+
+        // Extract extension
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $type)) {
+            $extension     = strtolower($type[1]);
+            $base64String  = substr($base64String, strpos($base64String, ',') + 1);
+        } else {
+            return null;
+        }
+
+        $decodedImage = base64_decode($base64String);
+        if ($decodedImage === false) {
+            return null;
+        }
+
+        // Create filename
+        $filename = empty($imageName)
+            ? sha1(time() . uniqid()) . '.' . $extension
+            : Str::slug($imageName) . '-' . sha1(time() . uniqid()) . '.' . $extension;
+
+        // Ensure folders exist
+        Storage::makeDirectory('public/' . $imageFolder);
+        Storage::makeDirectory('public/' . $imageThumFolder);
+
+        // Save original image
+        $originalPath = 'public/' . $imageFolder . $filename;
+        Storage::put($originalPath, $decodedImage);
+
+        // Thumbnail
+        // $image = Image::make($decodedImage)->resize(150, 150, function ($constraint) {
+        //     $constraint->aspectRatio();
+        //     $constraint->upsize();
+        // });
+
+        // $thumbFilename  = 'thumb_' . $filename;
+        // $thumbnailPath  = 'public/' . $imageThumFolder . $thumbFilename;
+        // Storage::put($thumbnailPath, (string) $image->encode());
+
+        return [
+            'original'  => $filename,
+            // 'thumbnail' => $thumbFilename,
+            'original_url' => asset('storage/' . $imageFolder . $filename),
+            // 'thumb_url'    => asset('storage/' . $imageThumFolder . $thumbFilename),
+        ];
+    }
+}
+
+
+// if (!function_exists('newImageUploadBase64')) {
+//     function imageUploadFromBase64($data)
+//     {
+
+//         $base64String = $data['base64'];
+//         $imageName = $data['fileName'] ?? '';
+//         $imageFolder = rtrim($data['folder'], '/') . '/';
+//         $imageThumFolder = rtrim($data['thumfolder'], '/') . '/';
+
+//         if (!$base64String) {
+//             return null;
+//         }
+
+//         // Extract extension from base64 string
+//         if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $type)) {
+//             $extension = strtolower($type[1]); // jpg, png, webp etc.
+//             $base64String = substr($base64String, strpos($base64String, ',') + 1);
+//         } else {
+//             return null; // Invalid image
+//         }
+
+//         $decodedImage = base64_decode($base64String);
+//         if ($decodedImage === false) {
+//             return null;
+//         }
+
+//         // Create filename
+//         if (empty($imageName)) {
+//             $filename = sha1(time() . uniqid()) . '.' . $extension;
+//         } else {
+//             $filename = Str::slug($imageName) . '-' . sha1(time() . uniqid()) . '.' . $extension;
+//         }
+
+//         Storage::makeDirectory('public/upload/test-folder');
+//         Storage::put('public/upload/test-folder/test.txt', 'hello');
+
+
+//         // Save original image
+//         $originalPath = 'public/' . $imageFolder . $filename;
+//         Storage::put($originalPath, $decodedImage);
+
+//         //Generate and save thumbnail
+//         $image = Image::make($decodedImage);
+//         $image->resize(150, 150, function ($constraint) {
+//             $constraint->aspectRatio();
+//             $constraint->upsize();
+//         });
+
+//         $thumbFilename = 'thumb_' . $filename;
+//         $thumbnailPath = 'public/' . $imageThumFolder . $thumbFilename;
+//         Storage::put($thumbnailPath, (string) $image->encode());
+
+//         return [
+//             'original' => $filename,
+//             'thumbnail' => $thumbFilename,
+//         ];
+//     }
+// }
+
 if (!function_exists('imageUpload')) {
     // function imageUpload($data)
     // {

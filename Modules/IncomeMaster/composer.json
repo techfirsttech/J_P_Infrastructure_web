@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/incomemaster",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\IncomeMaster\\": "app/",
+            "Modules\\IncomeMaster\\Database\\Factories\\": "database/factories/",
+            "Modules\\IncomeMaster\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\IncomeMaster\\Tests\\": "tests/"
+        }
+    }
+}

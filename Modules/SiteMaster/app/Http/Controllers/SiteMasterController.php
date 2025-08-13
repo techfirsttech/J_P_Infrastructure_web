@@ -80,7 +80,13 @@ class SiteMasterController extends Controller
     {
         // $array_role = ['Super Admin'];
         // $roleMaster = Role::whereNotIn('name', $array_role)->pluck('name', 'name')->all();
-        $supervisor = User::get();
+        // $supervisor = User::get();
+         $supervisor = User::select('id', 'name')
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'supervisor');
+            })
+            ->orderBy('id', 'DESC')
+            ->get();
         $country = Country::where('name', 'India')->first();
         $state = State::where('country_id', $country->id)->get();
         $city = City::where('country_id', $country->id)->get();

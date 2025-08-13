@@ -39,6 +39,7 @@
                                         @endforeach
                                     @endif
                                 </select>
+
                             </div>
 
                             {{-- <div class="col-12 col-sm-12 col-md-4 col-lg-4 form-group custom-input-group">
@@ -53,9 +54,8 @@
                             <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
                                 <label class="form-label" for="state_id">{{ __('sitemaster::message.state') }}</label>
 
-                                <select id="state_id" name="state_id" class="select2 form-select"
-                                    data-placeholder="{{ __('message.common.select') }}">
-                                    <option value=""></option>
+                                <select id="state_id" name="state_id" class="select2 form-select">
+                                    <option value="">{{ __('message.common.select') }}</option>
                                     @if ($state->count() > 0)
                                         @foreach ($state as $value)
                                             <option value="{{ $value->id }}">{{ $value->name }} </option>
@@ -70,9 +70,9 @@
                                 <label class="form-label" for="city_id">{{ __('sitemaster::message.city') }}<span
                                         class="text-danger">*</span></label>
 
-                                <select id="city_id" name="city_id" class="select2 form-select"
-                                    data-placeholder="{{ __('message.common.select') }}">
-                                    <option value=""></option>
+                                <select id="city_id" name="city_id" class="select2 form-select">
+                                    <option value="">{{ __('message.common.select') }}</option>
+
                                 </select>
                                 <span class="invalid-feedback d-block" id="error_city_id"
                                     role="alert">{{ $errors->first('city_id') }}</span>
@@ -157,9 +157,7 @@
             site_name: {
                 required: true,
             },
-            lastname: {
-                required: true,
-            },
+
 
             "roles[]": {
                 required: true,
@@ -169,9 +167,7 @@
             site_name: {
                 required: "{{ __('sitemaster::message.enter_site_name') }}"
             },
-            lastname: {
-                required: "{{ __('sitemaster::message.enter_last_name') }}"
-            },
+
 
             "roles[]": {
                 required: "{{ __('sitemaster::message.select_role') }}"
