@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/rawmaterialmaster",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\RawMaterialMaster\\": "app/",
+            "Modules\\RawMaterialMaster\\Database\\Factories\\": "database/factories/",
+            "Modules\\RawMaterialMaster\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\RawMaterialMaster\\Tests\\": "tests/"
+        }
+    }
+}

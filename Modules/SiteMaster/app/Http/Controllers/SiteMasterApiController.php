@@ -37,16 +37,16 @@ class SiteMasterApiController extends Controller
                 ->leftJoin('states', 'states.id', '=', 'site_masters.state_id')
                 ->leftJoin('cities', 'cities.id', '=', 'site_masters.city_id')
                 ->leftJoin('site_master_statuses', 'site_master_statuses.id', '=', 'site_masters.site_master_status_id')
-                ->get();
+                ->orderBy('site_masters.id', 'DESC')
+                ->simplePaginate(12);
 
             foreach ($siteMasters as $site) {
                 $site->supervisors = SiteSupervisor::where('site_master_id', $site->id)
-                ->leftJoin('users', 'site_supervisors.user_id', 'users.id')
-                ->select('site_supervisors.user_id','users.name')
-                ->get();
+                    ->leftJoin('users', 'site_supervisors.user_id', 'users.id')
+                    ->select('site_supervisors.user_id', 'users.name')
+                    ->get();
             }
-
-            return response(['status' => true, 'message' => 'Site Master List', 'result' => $siteMasters], 200);
+            return response(['status' => true, 'message' => 'Site Master List', 'result' => $siteMasters->items()], 200);
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
@@ -75,7 +75,7 @@ class SiteMasterApiController extends Controller
         if ($validator->fails()) {
             $error = $validator->errors();
             $response = ['status' => false, 'message' => 'Please input proper data.', 'errors' => $error];
-            return response()->json($response, 400);
+            return response()->json($response, 422);
         }
 
         DB::beginTransaction();
@@ -149,7 +149,7 @@ class SiteMasterApiController extends Controller
         if ($validator->fails()) {
             $error = $validator->errors();
             $response = ['status' => false, 'message' => 'Please input proper data.', 'errors' => $error];
-            return response()->json($response, 400);
+            return response()->json($response, 422);
         }
 
         DB::beginTransaction();
@@ -170,7 +170,7 @@ class SiteMasterApiController extends Controller
             $result = $siteMaster->save();
 
 
-            SiteSupervisor::where('site_master_id',$request->id)->delete();
+            SiteSupervisor::where('site_master_id', $request->id)->delete();
             $userID = $request->users;
             if ($userID) {
                 foreach ($userID as $userKey => $user) {
@@ -197,7 +197,7 @@ class SiteMasterApiController extends Controller
     }
 
 
-     public function destroy(Request $request)
+    public function destroy(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|exists:site_masters,id',
@@ -209,12 +209,12 @@ class SiteMasterApiController extends Controller
         if ($validator->fails()) {
             $error = $validator->errors();
             $response = ['status' => false, 'message' => 'Please input proper data.', 'errors' => $error];
-            return response()->json($response, 400);
+            return response()->json($response, 422);
         }
         try {
             $siteMaster = SiteMaster::where('id', $request->id)->first();
             if (!is_null($siteMaster)) {
-                SiteSupervisor::where('site_master_id',$siteMaster->id)->delete();
+                SiteSupervisor::where('site_master_id', $siteMaster->id)->delete();
                 $siteMaster->delete();
                 $response = ['status' => true, 'message' => 'Site deleted successfully.'];
             } else {
@@ -229,11 +229,10 @@ class SiteMasterApiController extends Controller
     public function siteDropdown()
     {
         try {
-            $siteDropdown = SiteMaster::select('id','site_name')->get();
+            $siteDropdown = SiteMaster::select('id', 'site_name')->get();
             return response(['status' => true, 'message' => 'Site Dropdown', 'site_dropdown' => $siteDropdown], 200);
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
     }
-
 }

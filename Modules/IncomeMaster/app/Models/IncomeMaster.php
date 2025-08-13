@@ -1,0 +1,30 @@
+<?php
+
+namespace Modules\IncomeMaster\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\User\Models\BaseModel;
+
+// use Modules\IncomeMaster\Database\Factories\IncomeMasterFactory;
+
+class IncomeMaster extends  BaseModel
+{
+    use HasFactory;
+
+    public $table = 'income_masters';
+
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
+
+    protected $fillable = ['id', 'user_id','site_id', 'supervisor_id', 'amount','remark','year_id','created_by','updated_by','deleted_by'];
+
+
+    // protected static function newFactory(): IncomeMasterFactory
+    // {
+    //     // return IncomeMasterFactory::new();
+    // }
+}

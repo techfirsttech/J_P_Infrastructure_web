@@ -15,5 +15,8 @@
     "Category": true,
     "SiteMaster": true,
     "ExpenseMaster": true,
-    "PaymentMaster": true
+    "PaymentMaster": true,
+    "IncomeMaster": true,
+    "RawMaterialCategory": true,
+    "RawMaterialMaster": true
 }
