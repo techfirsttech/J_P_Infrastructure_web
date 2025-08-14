@@ -18,5 +18,6 @@
     "PaymentMaster": true,
     "IncomeMaster": true,
     "RawMaterialCategory": true,
-    "RawMaterialMaster": true
+    "RawMaterialMaster": true,
+    "Supplier": true
 }
