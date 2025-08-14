@@ -106,6 +106,11 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'Raw_Material_Master', 'name' => 'material-master-edit', 'title' => 'Edit'],
             ['title_tag' => 'Raw_Material_Master', 'name' => 'material-master-delete', 'title' => 'Delete'],
 
+            ['title_tag' => 'Supplier', 'name' => 'supplier-list', 'title' => 'List'],
+            ['title_tag' => 'Supplier', 'name' => 'supplier-create', 'title' => 'Create'],
+            ['title_tag' => 'Supplier', 'name' => 'supplier-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Supplier', 'name' => 'supplier-delete', 'title' => 'Delete'],
+
 
         ];
 
