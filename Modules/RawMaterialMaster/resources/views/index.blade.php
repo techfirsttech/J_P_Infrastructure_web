@@ -92,7 +92,7 @@
                 },
                 {
                     data: 'material_category_name',
-                    name: 'material_category_name'
+                    name: 'raw_material_categories.material_category_name'
                 },
                 {
                     data: 'material_name',
@@ -104,7 +104,7 @@
                 },
                 {
                     data: 'unit_name',
-                    name: 'unit_name'
+                    name: 'units.name'
                 },
                 {
                     data: 'alert_quantity',

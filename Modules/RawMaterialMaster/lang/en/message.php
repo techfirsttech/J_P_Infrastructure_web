@@ -32,6 +32,7 @@ return [
     'alert_quantity' => 'Alert Quantity',
     'tax' => 'Tax',
     'enter_material_name' => 'Enter Material Name',
+    'transaction' => 'In/Out Transaction',
 
 
 

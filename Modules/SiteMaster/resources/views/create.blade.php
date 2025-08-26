@@ -80,7 +80,7 @@
 
                             <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
                                 <label class="form-label" for="pincode">{{ __('sitemaster::message.pincode') }} </label>
-                                <input type="pincode" class="form-control text-lowercase" id="pincode" name="pincode"
+                                <input type="text" class="form-control text-lowercase" id="pincode" name="pincode"
                                     placeholder="{{ __('sitemaster::message.pincode') }}" value="{{ old('pincode') }}">
                                 <span class="invalid-feedback d-block" id="error_pincode"
                                     role="alert">{{ $errors->first('pincode') }}</span>

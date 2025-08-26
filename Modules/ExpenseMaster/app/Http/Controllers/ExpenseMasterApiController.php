@@ -3,6 +3,7 @@
 namespace Modules\ExpenseMaster\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,14 +13,16 @@ use Modules\ExpenseCategory\Models\ExpenseCategory;
 use Modules\ExpenseMaster\Models\ExpenseMaster;
 use Modules\PaymentMaster\Models\PaymentMaster;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
+use Modules\User\Models\User;
 
 class ExpenseMasterApiController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $expenseMaster = ExpenseMaster::select(
+            $query = ExpenseMaster::select(
                 'expense_masters.id',
                 'expense_masters.site_id',
                 'expense_masters.supervisor_id',
@@ -27,19 +30,160 @@ class ExpenseMasterApiController extends Controller
                 'expense_masters.amount',
                 'expense_masters.document',
                 'expense_masters.remark',
+                'expense_masters.status',
+                DB::raw("DATE_FORMAT(expense_masters.date, '%d-%m-%Y') as date"),
                 'site_masters.site_name',
                 'expense_categories.expense_category_name',
                 'users.name as supervisor_name',
             )
                 ->leftJoin('site_masters', 'expense_masters.site_id', '=', 'site_masters.id')
                 ->leftJoin('users', 'users.id', '=', 'expense_masters.supervisor_id')
-                ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expense_masters.expense_category_id')
-                 ->orderBy('expense_masters.id', 'DESC')
-                ->simplePaginate(12);
-            return response(['status' => true, 'message' => 'Expense Master List', 'expense_master' => $expenseMaster->items()], 200);
-        } catch (Exception $e) {
-            return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
+                ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expense_masters.expense_category_id');
+
+            $user = Auth::user();
+            $role = $user->roles->first();
+
+            if ($role && $role->name === 'Supervisor') {
+                $query->where('expense_masters.supervisor_id', $user->id);
+            }
+
+            if ($request->filled('supervisor_id')) {
+                $query->where('expense_masters.supervisor_id', $request->supervisor_id);
+            }
+            if ($request->filled('site_id')) {
+                $query->where('expense_masters.site_id', $request->site_id);
+            }
+            if ($request->filled('expense_category_id')) {
+                $query->where('expense_masters.expense_category_id', $request->expense_category_id);
+            }
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+                $query->whereBetween('expense_masters.created_at', [$startDate, $endDate]);
+            } elseif ($request->filled('start_date')) {
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+                $query->where('expense_masters.created_at', '>=', $startDate);
+            } elseif ($request->filled('end_date')) {
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+                $query->where('expense_masters.created_at', '<=', $endDate);
+            }
+
+            // Total amount with format
+            $totalAmount = (clone $query)->sum('expense_masters.amount');
+            $totalAmount = floor($totalAmount) == $totalAmount ? (int)$totalAmount : (float)$totalAmount;
+
+            // Pagination and formatting
+            $expenseMaster = $query->orderBy('expense_masters.id', 'DESC')->simplePaginate(30);
+
+            $formattedExpenseMaster = collect($expenseMaster->items())->map(function ($item) {
+                // Format amount
+                if (floor($item->amount) == $item->amount) {
+                    $item->amount = (int)$item->amount;
+                } else {
+                    $item->amount = (float)$item->amount;
+                }
+
+                // Add full document URL
+                $item->document = !empty($item->document)
+                    ? url('public/expense/document/' . $item->document)
+                    : null;
+
+                return $item;
+            });
+
+            return response([
+                'status' => true,
+                'message' => 'Expense Master List',
+                'total_amount' => $totalAmount,
+                'expense_master' => $formattedExpenseMaster
+            ], 200);
+        } catch (\Exception $e) {
+            return response([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.',
+                // 'error' => $e->getMessage()
+            ], 200);
         }
+
+        // try {
+        //     $query = ExpenseMaster::select(
+        //         'expense_masters.id',
+        //         'expense_masters.site_id',
+        //         'expense_masters.supervisor_id',
+        //         'expense_masters.expense_category_id',
+        //         'expense_masters.amount',
+        //         'expense_masters.document',
+        //         'expense_masters.remark',
+        //         'expense_masters.status',
+        //         'expense_masters.date',
+        //         DB::raw("DATE_FORMAT(expense_masters.date, '%d-%m-%Y') as date"),
+        //         'expense_categories.expense_category_name',
+        //         'users.name as supervisor_name',
+        //     )
+        //         ->leftJoin('site_masters', 'expense_masters.site_id', '=', 'site_masters.id')
+        //         ->leftJoin('users', 'users.id', '=', 'expense_masters.supervisor_id')
+        //         ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expense_masters.expense_category_id');
+
+        //     $user = Auth::user();
+        //     $role = $user->roles->first();
+
+        //     if ($role && $role->name === 'Supervisor') {
+        //         $query->where('expense_masters.supervisor_id', $user->id);
+        //     }
+
+        //     if ($request->filled('supervisor_id')) {
+        //         $query->where('expense_masters.supervisor_id', $request->supervisor_id);
+        //     }
+        //     if ($request->filled('site_id')) {
+        //         $query->where('expense_masters.site_id', $request->site_id);
+        //     }
+        //     if ($request->filled('expense_category_id')) {
+        //         $query->where('expense_masters.expense_category_id', $request->expense_category_id);
+        //     }
+        //     if ($request->filled('start_date') && $request->filled('end_date')) {
+        //         $startDate = Carbon::parse($request->start_date)->startOfDay();
+        //         $endDate = Carbon::parse($request->end_date)->endOfDay();
+        //         $query->whereBetween('expense_masters.created_at', [$startDate, $endDate]);
+        //     } elseif ($request->filled('start_date')) {
+        //         $startDate = Carbon::parse($request->start_date)->startOfDay();
+        //         $query->where('expense_masters.created_at', '>=', $startDate);
+        //     } elseif ($request->filled('end_date')) {
+        //         $endDate = Carbon::parse($request->end_date)->endOfDay();
+        //         $query->where('expense_masters.created_at', '<=', $endDate);
+        //     }
+
+        //     $totalAmount = (clone $query)->sum('expense_masters.amount');
+
+        //     $expenseMaster = $query->orderBy('expense_masters.id', 'DESC')->simplePaginate(30);
+
+
+        //     $totalAmount = (clone $query)->sum('expense_masters.amount');
+
+        //     // Format each item in the result
+        //     $formattedExpenseMaster = collect($expenseMaster->items())->map(function ($item) {
+        //         if (floor($item->amount) == $item->amount) {
+        //             $item->amount = (int) $item->amount;  // 100.000 → 100
+        //         } else {
+        //             $item->amount = (float) $item->amount;  // 100.50 → 100.5
+        //         }
+        //         return $item;
+        //     });
+
+        //     // Format total amount as well
+        //     $totalAmount = floor($totalAmount) == $totalAmount ? (int) $totalAmount : (float) $totalAmount;
+        //     return response([
+        //         'status' => true,
+        //         'message' => 'Expense Master List',
+        //         'total_amount' => $totalAmount,
+        //         'expense_master' => $formattedExpenseMaster
+        //     ], 200);
+        // } catch (\Exception $e) {
+        //     return response([
+        //         'status' => false,
+        //         'message' => 'Something went wrong. Please try again.',
+        //         // 'error' => $e->getMessage()
+        //     ], 200);
+        // }
     }
 
     public function create()
@@ -82,19 +226,33 @@ class ExpenseMasterApiController extends Controller
             $expenseMaster->expense_category_id = $request->expense_category_id;
             $expenseMaster->amount = $request->amount;
             $expenseMaster->remark = $request->remark;
+            $expenseMaster->date = (!empty($request->date)) ? date('Y-m-d', strtotime($request->date)) : null;
             $expenseMaster->year_id = $yearID;
+            // if ($request->hasFile('document')) {
+            //     $file = $request->file('document');
+            //     $base64 = 'data:image/' . $file->extension() . ';base64,' . base64_encode(file_get_contents($file));
+            //     $uploadResponse = imageUploadFromBase64([
+            //         'base64' => $base64,
+            //         'fileName' => 'expense-document',
+            //         'folder' => 'upload/expense/documents',
+            //         'thumfolder' => 'upload/expense/documents/thumbs',
+            //     ]);
+            //     if ($uploadResponse) {
+            //         $expenseMaster->document = $uploadResponse['original'];
+            //     }
+            // }
             if ($request->hasFile('document')) {
-                $file = $request->file('document');
-                $base64 = 'data:image/' . $file->extension() . ';base64,' . base64_encode(file_get_contents($file));
-                $uploadResponse = imageUploadFromBase64([
-                    'base64' => $base64,
-                    'fileName' => 'expense-document',
-                    'folder' => 'upload/expense/documents',
-                    'thumfolder' => 'upload/expense/documents/thumbs',
-                ]);
-                if ($uploadResponse) {
-                    $expenseMaster->document = $uploadResponse['original'];
+                if ($expenseMaster->document) {
+                    @unlink(public_path('expense/document/' . $expenseMaster->document));
+                    @unlink(public_path('expense/document/thumbnail/' . $expenseMaster->document));
                 }
+
+                $expenseMaster->document = $this->uploadToPublicFolder(
+                    $request->file('document'),
+                    $request->company_name,
+                    'expense/document',
+                    'expense/document/thumbnail'
+                );
             }
             $result = $expenseMaster->save();
 
@@ -106,6 +264,7 @@ class ExpenseMasterApiController extends Controller
             $paymentMaster->amount = $expenseMaster->amount;
             $paymentMaster->status = "Debit";
             $paymentMaster->remark = $expenseMaster->remark;
+            $paymentMaster->date = (!empty($expenseMaster->date)) ? date('Y-m-d', strtotime($expenseMaster->date)) : null;;
             $paymentMaster->year_id = $yearID;;
             $paymentMaster->save();
 
@@ -119,8 +278,8 @@ class ExpenseMasterApiController extends Controller
                 return response(['status' => false, 'message' => 'Expense can not added.'], 200);
             }
         } catch (\Exception $e) {
+            dd($e);
             DB::rollBack();
-            $this->logToCustomFile($e);
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
     }
@@ -170,6 +329,8 @@ class ExpenseMasterApiController extends Controller
             $expenseMaster->amount = $request->amount;
             // $expenseMaster->document = $request->document;
             $expenseMaster->remark = $request->remark;
+            $expenseMaster->date = (!empty($request->date)) ? date('Y-m-d', strtotime($request->date)) : null;
+
             $expenseMaster->year_id = $yearID;
 
             if ($request->hasFile('document')) {
@@ -195,7 +356,8 @@ class ExpenseMasterApiController extends Controller
             $paymentMaster->amount = $expenseMaster->amount;
             $paymentMaster->status = "Debit";
             $paymentMaster->remark = $expenseMaster->remark;
-            $paymentMaster->year_id = $yearID;;
+            $paymentMaster->date = (!empty($expenseMaster->date)) ? date('Y-m-d', strtotime($expenseMaster->date)) : null;;
+            $paymentMaster->year_id = $yearID;
             $paymentMaster->save();
             // DB::commit();
             if ($result) {
@@ -249,5 +411,225 @@ class ExpenseMasterApiController extends Controller
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
+    }
+
+    public function paymentLedger(Request $request)
+    {
+
+        // try {
+        //     $query = PaymentMaster::select(
+        //         'payment_masters.id',
+        //         'payment_masters.site_id',
+        //         'payment_masters.supervisor_id',
+        //         'payment_masters.model_type',
+        //         'payment_masters.model_id',
+        //         'payment_masters.amount',
+        //         DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
+
+        //         'payment_masters.status',
+        //         'site_masters.site_name',
+        //         'users.name as supervisor_name',
+        //     )
+        //         ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
+        //         ->leftJoin('users', 'users.id', '=', 'payment_masters.supervisor_id');
+
+        //     $user = Auth::user();
+        //     $role = $user->roles->first();
+
+        //     if ($role && $role->name === 'Supervisor') {
+        //         $query->where('payment_masters.supervisor_id', $user->id);
+        //     }
+
+        //     if ($request->filled('supervisor_id')) {
+        //         $query->where('payment_masters.supervisor_id', $request->supervisor_id);
+        //     }
+        //     if ($request->filled('site_id')) {
+        //         $query->where('payment_masters.site_id', $request->site_id);
+        //     }
+
+        //     if ($request->filled('start_date') && $request->filled('end_date')) {
+        //         $startDate = Carbon::parse($request->start_date)->startOfDay();
+        //         $endDate = Carbon::parse($request->end_date)->endOfDay();
+        //         $query->whereBetween('payment_masters.created_at', [$startDate, $endDate]);
+        //     } elseif ($request->filled('start_date')) {
+        //         $startDate = Carbon::parse($request->start_date)->startOfDay();
+        //         $query->where('payment_masters.created_at', '>=', $startDate);
+        //     } elseif ($request->filled('end_date')) {
+        //         $endDate = Carbon::parse($request->end_date)->endOfDay();
+        //         $query->where('payment_masters.created_at', '<=', $endDate);
+        //     }
+
+        //     $totalExpense = (clone $query)->where('model_type', 'Expense')->sum('payment_masters.amount');
+        //     $totalIncome = (clone $query)->where('model_type', 'Income')->sum('payment_masters.amount');
+
+        //     $payment = $query->orderBy('payment_masters.id', 'DESC')->simplePaginate(30);
+
+        //     return response([
+        //         'status' => true,
+        //         'message' => 'Expense Master List',
+        //         'total_expense' => $totalExpense,
+        //         'total_income' => $totalIncome,
+        //         'closing_balance' => $totalIncome -  $totalExpense,
+        //         'expense_master' => $payment->items()
+        //     ], 200);
+        // } catch (\Exception $e) {
+        //     dd($e);
+        //     return response([
+        //         'status' => false,
+        //         'message' => 'Something went wrong. Please try again.',
+        //     ], 200);
+        // }
+        try {
+            $query = PaymentMaster::select(
+                'payment_masters.id',
+                'payment_masters.site_id',
+                'payment_masters.supervisor_id',
+                'payment_masters.model_type',
+                'payment_masters.model_id',
+                'payment_masters.amount',
+                DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
+                'payment_masters.status',
+                'site_masters.site_name',
+                'users.name as supervisor_name',
+            )
+                ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
+                ->leftJoin('users', 'users.id', '=', 'payment_masters.supervisor_id');
+
+            $user = Auth::user();
+            $role = $user->roles->first();
+
+            if ($role && $role->name === 'Supervisor') {
+                $query->where('payment_masters.supervisor_id', $user->id);
+            }
+
+            if ($request->filled('supervisor_id')) {
+                $query->where('payment_masters.supervisor_id', $request->supervisor_id);
+            }
+            if ($request->filled('site_id')) {
+                $query->where('payment_masters.site_id', $request->site_id);
+            }
+
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+                $query->whereBetween('payment_masters.created_at', [$startDate, $endDate]);
+            } elseif ($request->filled('start_date')) {
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+                $query->where('payment_masters.created_at', '>=', $startDate);
+            } elseif ($request->filled('end_date')) {
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+                $query->where('payment_masters.created_at', '<=', $endDate);
+            }
+
+            // $totalExpense = (clone $query)->where('model_type', 'Expense')->sum('payment_masters.amount');
+            // $totalIncome = (clone $query)->where('model_type', 'Income')->sum('payment_masters.amount');
+
+            $totalExpense = (clone $query)->where('model_type', 'Expense')->sum('payment_masters.amount');
+            $totalIncome = (clone $query)->where('model_type', 'Income')->sum('payment_masters.amount');
+
+            // Format totalExpense and totalIncome to remove trailing .000 if any
+            if (floor($totalExpense) == $totalExpense) {
+                $totalExpense = (int) $totalExpense;
+            } else {
+                $totalExpense = (float) $totalExpense;
+            }
+
+            if (floor($totalIncome) == $totalIncome) {
+                $totalIncome = (int) $totalIncome;
+            } else {
+                $totalIncome = (float) $totalIncome;
+            }
+
+
+            $payment = $query->orderBy('payment_masters.id', 'DESC')->simplePaginate(30);
+
+            // Format amount to remove trailing zeros (like 100.000 → 100)
+            $formattedPayments = collect($payment->items())->map(function ($item) {
+                if (floor($item->amount) == $item->amount) {
+                    $item->amount = (int) $item->amount;  // Convert to int to remove decimal .000
+                } else {
+                    $item->amount = (float) $item->amount; // Keep decimals if present
+                }
+                return $item;
+            });
+
+            return response([
+                'status' => true,
+                'message' => 'Expense Master List',
+                'total_expense' => $totalExpense,
+                'total_income' => $totalIncome,
+                'closing_balance' => $totalIncome -  $totalExpense,
+                'expense_master' => $formattedPayments
+            ], 200);
+        } catch (\Exception $e) {
+            // For debugging, better to log error instead of dd in production
+            // dd($e);
+            return response([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function statusChange(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:expense_masters,id',
+            'status' => 'required',
+        ], [
+            'id.required' => 'ID is required.',
+            'id.integer' => 'ID must be an integer.',
+            'id.exists' => 'The enter expense master ID does not exist.',
+            'status.required' => 'Enter expense status',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()]);
+        }
+        try {
+            ExpenseMaster::where('id', $request->id)->update(['status' => $request->status]);
+
+            return response()->json(['status_code' => 200, 'message' => 'Status change successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
+        }
+    }
+
+    private function uploadToPublicFolder($file, $imageName, $folder, $thumbFolder)
+    {
+        $originalExtension = $file->getClientOriginalExtension();
+        $filename = Str::slug($imageName) . '-' . time() . '.' . $originalExtension;
+
+        $originalPath = public_path($folder);
+        $thumbPath = public_path($thumbFolder);
+
+        if (!File::exists($originalPath)) {
+            File::makeDirectory($originalPath, 0755, true);
+        }
+        if (!File::exists($thumbPath)) {
+            File::makeDirectory($thumbPath, 0755, true);
+        }
+
+        // Save original without modification
+        $file->move($originalPath, $filename);
+
+        // Generate thumbnail (always webp to save space)
+        $tempPath = $originalPath . '/' . $filename;
+        $src = imagecreatefromstring(file_get_contents($tempPath));
+
+        if (!$src) return $filename;
+
+        $trueColor = imagecreatetruecolor(200, 200);
+        list($width, $height) = getimagesize($tempPath);
+        imagecopyresampled($trueColor, $src, 0, 0, 0, 0, 200, 200, $width, $height);
+
+        // Save thumbnail as webp
+        $thumbName = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
+        imagewebp($trueColor, $thumbPath . '/' . $thumbName, 90);
+
+        imagedestroy($src);
+        imagedestroy($trueColor);
+
+        return $filename;
     }
 }

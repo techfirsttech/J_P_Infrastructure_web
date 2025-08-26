@@ -24,9 +24,9 @@
                                    <input type="text" name="supplier_code" id="supplier_code" value="{{ old('supplier_code', $supplier->supplier_code) }}" class="form-control" placeholder="{{ __('supplier::message.supplier_code') }}">
                               </div>
                               <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
-                                   <label class="form-label" for="name">{{ __('supplier::message.name') }} <span class="text-danger">*</span></label>
-                                   <input type="text" name="name" id="name" value="{{ old('name', $supplier->name) }}" class="form-control" placeholder="{{ __('supplier::message.name') }}">
-                                   <span class="invalid-feedback d-block" id="error_name" role="alert"></span>
+                                   <label class="form-label" for="supplier_name">{{ __('supplier::message.supplier_name') }} <span class="text-danger">*</span></label>
+                                   <input type="text" name="supplier_name" id="supplier_name" value="{{ old('supplier_name', $supplier->supplier_name) }}" class="form-control" placeholder="{{ __('supplier::message.supplier_name') }}">
+                                   <span class="invalid-feedback d-block" id="error_supplier_name" role="alert"></span>
                               </div>
                               <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
                                    <label class="form-label" for="mobile">{{ __('supplier::message.mobile') }}</label>
@@ -287,7 +287,7 @@
 
      $("#form").validate({
           rules: {
-               name: {
+               supplier_name: {
                     required: true,
                },
                mobile: {
@@ -313,7 +313,7 @@
                },
           },
           messages: {
-               name: {
+               supplier_name: {
                     required: "{{ __('supplier::message.enter_name') }}",
                },
                mobile: {

@@ -20,7 +20,7 @@ class IncomeMaster extends  BaseModel
         'deleted_at'
     ];
 
-    protected $fillable = ['id', 'user_id','site_id', 'supervisor_id', 'amount','remark','year_id','created_by','updated_by','deleted_by'];
+    protected $fillable = ['id', 'user_id','site_id', 'supervisor_id', 'amount','remark','year_id','date','created_by','updated_by','deleted_by'];
 
 
     // protected static function newFactory(): IncomeMasterFactory

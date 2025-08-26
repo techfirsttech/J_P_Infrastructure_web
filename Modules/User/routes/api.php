@@ -7,5 +7,6 @@ use Modules\User\Http\Controllers\UserController;
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::apiResource('users', UserController::class)->names('user');
     Route::get('dashboard', [UserApiController::class, 'dashboard']);
-    Route::get('supervisor-list', [UserApiController::class, 'supervisorList']);
+    Route::post('supervisor-list', [UserApiController::class, 'supervisorList']);
+    Route::post('site-supervisor-list', [UserApiController::class, 'siteSupervisorList']);
 });
