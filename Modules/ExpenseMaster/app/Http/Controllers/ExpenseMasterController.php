@@ -111,7 +111,7 @@ class ExpenseMasterController extends Controller
                 })
                 ->editColumn('document', function ($row) {
                     if ($row->document) {
-                        $url = url('expense/document/' . $row->document);
+                        $url = url('public/expense/document/' . $row->document);
                         return '<a href="' . $url . '" target="_blank">
                     <img src="' . $url . '" alt="Document" height="40" />
                 </a>';
