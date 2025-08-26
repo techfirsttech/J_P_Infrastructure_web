@@ -161,9 +161,9 @@ class ExpenseCategoryController extends Controller
                     return $query->where([['deleted_at', null]]);
                 }
             })],
-            'expense_category_status_id' => ['required']
+            // 'expense_category_status_id' => ['required']
         ], [
-            'expense_category_status_id.required' => __('expensecategory::message.choose_expense_category_status'),
+            // 'expense_category_status_id.required' => __('expensecategory::message.choose_expense_category_status'),
             'expense_category_name.required' => __('expensecategory::message.enter_expense_category_name'),
             'expense_category_name.unique' => __('expensecategory::message.enter_unique_expense_category_name')
         ]);
@@ -180,7 +180,7 @@ class ExpenseCategoryController extends Controller
                 $msg = ' added ';
             }
             $expenseCategory->expense_category_name = $request->expense_category_name;
-            $expenseCategory->expense_category_status_id = $request->expense_category_status_id;
+            // $expenseCategory->expense_category_status_id = $request->expense_category_status_id;
             $result = $expenseCategory->save();
             if (!is_null($result)) {
                 DB::commit();

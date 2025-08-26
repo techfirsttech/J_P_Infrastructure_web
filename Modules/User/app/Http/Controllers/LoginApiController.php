@@ -5,6 +5,7 @@ namespace Modules\User\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Modules\User\Models\User;
 use Spatie\Permission\Models\Permission;
 
@@ -41,7 +42,7 @@ class LoginApiController extends Controller
     public function dashboard()
     {
 
-        $user = User::select('id', 'name', 'email', 'mobile', 'username',  'menu_style', 'theme', 'status', 'designation')->first();
+        $user = User::select('id', 'name', 'email', 'mobile', 'username',  'menu_style', 'theme', 'status', 'designation')->where('id',Auth::id())->first();
         $role = $user->roles->first();
         $user->role = $role->name;
         $permissions = Permission::select('id', 'title', 'title_tag', 'name')

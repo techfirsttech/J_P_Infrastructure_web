@@ -71,19 +71,31 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            // 'mobile' => [
+            //     'required',
+            //     Rule::unique('users')->where(function ($query) use ($request) {
+            //         return $query->where('deleted_at', '=', null);
+            //     }),
+            //     'numeric',
+            //     'digits:10'
+            // ],
+            // 'username' => [
+            //     'required',
+            //     Rule::unique('users')->where(function ($query) use ($request) {
+            //         return $query->where('deleted_at', '=', null);
+            //     }),
+            // ],
+
+
             'mobile' => [
                 'required',
-                Rule::unique('users')->where(function ($query) use ($request) {
-                    return $query->where('deleted_at', '=', null);
-                }),
                 'numeric',
-                'digits:10'
+                'digits:10',
+                Rule::unique('users')->whereNull('deleted_at'),
             ],
             'username' => [
                 'required',
-                Rule::unique('users')->where(function ($query) use ($request) {
-                    return $query->where('deleted_at', '=', null);
-                }),
+                Rule::unique('users')->whereNull('deleted_at'),
             ],
             'password' => 'required_with:confirm_password|min:8|regex:/[a-z]/|regex:/[A-Z]/|regex:/[0-9]/|regex:/[@$!%*#?&]/',
             'confirm_password' => 'required|same:password',
@@ -136,6 +148,7 @@ class UserController extends Controller
                 return redirect()->back()->with('warning', 'User added failed');
             }
         } catch (\Exception $e) {
+            dd($e);
             DB::rollback();
             return redirect()->back()->with('error', 'Something went wrong. Please try again');
         }
@@ -484,6 +497,4 @@ class UserController extends Controller
             return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
         }
     }
-
-
 }

@@ -20,14 +20,15 @@
                     @csrf
                     <div class="row">
                         <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
-                            <label class="form-label" for="supplier_code">{{ __('supplier::message.code') }} <span class="text-danger">*</span></label>
-                            <input type="text" name="supplier_code" id="supplier_code" value="" required="" class="form-control" placeholder="{{ __('supplier::message.code') }}">
+                            <label class="form-label" for="supplier_name">{{ __('supplier::message.supplier_name') }} <span class="text-danger">*</span></label>
+                            <input type="text" name="supplier_name" id="supplier_name" value="" class="form-control" placeholder="{{ __('supplier::message.supplier_name') }}">
+                            <span class="invalid-feedback d-block" id="error_supplier_name" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
-                            <label class="form-label" for="name">{{ __('supplier::message.name') }} <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="name" value="" class="form-control" placeholder="{{ __('supplier::message.name') }}">
-                            <span class="invalid-feedback d-block" id="error_name" role="alert"></span>
+                            <label class="form-label" for="supplier_code">{{ __('supplier::message.code') }} <span class="text-danger"></span></label>
+                            <input type="text" name="supplier_code" id="supplier_code" value="" class="form-control" placeholder="{{ __('supplier::message.code') }}">
                         </div>
+
                         <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
                             <label class="form-label" for="mobile">{{ __('supplier::message.mobile') }}</label>
                             <input type="text" maxlength="10" name="mobile" id="mobile" value="" class="form-control number" placeholder="{{ __('supplier::message.mobile') }}">
@@ -82,7 +83,7 @@
                             <input class="form-control" name="address_line_3" id="address_line_3" placeholder="{{ __('supplier::message.address3') }}">
                         </div>
                         <div class="col-12 col-sm-12 col-md-4 col-lg-4 form-group custom-input-group">
-                            <label class="form-label" for="country_id">{{ __('message.common.country') }} <span class="text-danger">*</span></label>
+                            <label class="form-label" for="country_id">{{ __('message.common.country') }} <span class="text-danger"></span></label>
                             <select class="select2 form-select" name="country_id" id="country_id">
                                 <option value="" selected>{{ __('message.common.select') }}</option>
                                 @foreach ($country as $value)
@@ -92,14 +93,14 @@
                             <span class="invalid-feedback d-block" id="error_country_id" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
-                            <label class="form-label" for="state_id">{{ __('message.common.state') }} <span class="text-danger">*</span></label>
+                            <label class="form-label" for="state_id">{{ __('message.common.state') }} <span class="text-danger"></span></label>
                             <select class="select2 form-select" name="state_id" id="state_id">
                                 <option value="" selected>{{ __('message.common.select') }}</option>
                             </select>
                             <span class="invalid-feedback d-block" id="error_state_id" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
-                            <label class="form-label" for="city_id">{{ __('message.common.city') }} <span class="text-danger">*</span></label>
+                            <label class="form-label" for="city_id">{{ __('message.common.city') }} <span class="text-danger"></span></label>
                             <select class="select2 form-select" name="city_id" id="city_id">
                                 <option value="" selected>{{ __('message.common.select') }}</option>
                             </select>
@@ -283,62 +284,18 @@
 
     $("#form").validate({
         rules: {
-            supplier_code: {
+
+            supplier_name: {
                 required: true,
             },
-            name: {
-                required: true,
-            },
-            mobile: {
-                minlength: 10,
-                regex: "[6-7-8-9]{1}[0-9]{9}",
-            },
-            contact_number: {
-                minlength: 10,
-                regex: "[6-7-8-9]{1}[0-9]{9}",
-            },
-            contact_person_number: {
-                minlength: 10,
-                regex: "[6-7-8-9]{1}[0-9]{9}",
-            },
-            country_id: {
-                required: true,
-            },
-            state_id: {
-                required: true,
-            },
-            city_id: {
-                required: true,
-            },
+
         },
         messages: {
-            supplier_code: {
-                required: "{{ __('supplier::message.enter_code') }}",
+
+            supplier_name: {
+                required: "{{ __('supplier::message.enter_supplier_name') }}",
             },
-            name: {
-                required: "{{ __('supplier::message.enter_name') }}",
-            },
-            country_id: {
-                required: "{{ __('supplier::message.select_country') }}",
-            },
-            state_id: {
-                required: "{{ __('supplier::message.select_state') }}",
-            },
-            city_id: {
-                required: "{{ __('supplier::message.select_city') }}",
-            },
-            mobile: {
-                minlength: "{{ __('message.common.enter_10_digits') }}",
-                regex: "{{ __('message.common.enter_valid_number') }}"
-            },
-            contact_number: {
-                minlength: "{{ __('message.common.enter_10_digits') }}",
-                regex: "{{ __('message.common.enter_valid_number') }}"
-            },
-            contact_person_number: {
-                minlength: "{{ __('message.common.enter_10_digits') }}",
-                regex: "{{ __('message.common.enter_valid_number') }}"
-            },
+
         },
         errorElement: "p",
         errorClass: "text-danger mb-0 custom-error",

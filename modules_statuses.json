@@ -12,12 +12,15 @@
     "Login": true,
     "Dashboard": true,
     "ExpenseCategory": true,
-    "Category": true,
+    "Category": false,
     "SiteMaster": true,
     "ExpenseMaster": true,
-    "PaymentMaster": true,
+    "PaymentMaster": false,
     "IncomeMaster": true,
     "RawMaterialCategory": true,
     "RawMaterialMaster": true,
-    "Supplier": true
+    "Supplier": true,
+    "Labour": true,
+    "Attendance": true,
+    "Contractor": true
 }

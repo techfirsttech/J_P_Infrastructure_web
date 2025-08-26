@@ -15,7 +15,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>{{ __('supplier::message.name') }}</th>
+                            <th>{{ __('supplier::message.supplier_name') }}</th>
                             <th>{{ __('supplier::message.mobile') }}</th>
                             <th>{{ __('supplier::message.contact_number') }}</th>
                             <th>{{ __('supplier::message.gst_number') }}</th>
@@ -83,8 +83,8 @@
                     }
                 },
                 {
-                    data: 'name',
-                    name: 'name'
+                    data: 'supplier_name',
+                    name: 'supplier_name'
                 },
                 {
                     data: 'mobile',

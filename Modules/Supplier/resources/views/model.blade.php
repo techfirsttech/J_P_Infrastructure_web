@@ -20,11 +20,11 @@
         <div class="col-lg-6">
             <div class="row">
                 <div class="col-12 col-lg-4">
-                    <span class="fw-bold">{{ __('supplier::message.name') }}</span>
+                    <span class="fw-bold">{{ __('supplier::message.supplier_name') }}</span>
                 </div>
-                @if($query->name != "")
+                @if($query->supplier_name != "")
                 <div class="col-12 col-lg-8">
-                    <h6 class="m-25">: {{ $query->name }}</h6>
+                    <h6 class="m-25">: {{ $query->supplier_name }}</h6>
                 </div>
                 @endif
             </div>
@@ -123,7 +123,7 @@
                     <h6 class="m-25">: {{ $query->address_line_1 }},{{ $query->address_line_2 }},{{ $query->address_line_3 }}</h6>
                 </div>
             </div>
-        </div>        
+        </div>
         <div class="col-lg-12">
             <div class="row">
                 <div class="col-12 col-lg-12">

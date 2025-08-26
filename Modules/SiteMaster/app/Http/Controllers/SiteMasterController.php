@@ -8,7 +8,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Modules\City\Models\City;
+use Modules\Contractor\Models\Contractor;
 use Modules\Country\Models\Country;
+use Modules\ExpenseMaster\Models\ExpenseMaster;
+use Modules\IncomeMaster\Models\IncomeMaster;
+use Modules\RawMaterialMaster\Models\RawMaterialMaster;
+use Modules\RawMaterialMaster\Models\RawMaterialStock;
 use Modules\SiteMaster\Models\SiteMaster;
 use Modules\SiteMaster\Models\SiteMasterStatus;
 use Modules\SiteMaster\Models\SiteSupervisor;
@@ -81,7 +86,7 @@ class SiteMasterController extends Controller
         // $array_role = ['Super Admin'];
         // $roleMaster = Role::whereNotIn('name', $array_role)->pluck('name', 'name')->all();
         // $supervisor = User::get();
-         $supervisor = User::select('id', 'name')
+        $supervisor = User::select('id', 'name')
             ->whereHas('roles', function ($q) {
                 $q->where('name', 'supervisor');
             })
@@ -120,8 +125,8 @@ class SiteMasterController extends Controller
 
             $country = Country::where('name', 'India')->first();
             $countryID = $country->id;
-            $status = SiteMasterStatus::where('status_name', 'Approved')->first();
-            $statusID = $status->id;
+            // $status = SiteMasterStatus::where('status_name', 'Approved')->first();
+            // $statusID = $status->id;
             $siteMaster = new SiteMaster();
             $siteMaster->site_name = ucwords($request->site_name);
             $siteMaster->address = $request->address;
@@ -129,7 +134,7 @@ class SiteMasterController extends Controller
             $siteMaster->state_id = $request->state_id;
             $siteMaster->city_id = $request->city_id;
             $siteMaster->pincode = $request->pincode;
-            $siteMaster->site_master_status_id = $statusID;
+            // $siteMaster->site_master_status_id = $statusID;
 
             $result = $siteMaster->save();
 
@@ -151,7 +156,6 @@ class SiteMasterController extends Controller
                 return redirect()->back()->with('warning', 'SIte added failed');
             }
         } catch (\Exception $e) {
-            dd($e);
             DB::rollback();
             return redirect()->back()->with('error', 'Something went wrong. Please try again');
         }
@@ -170,83 +174,75 @@ class SiteMasterController extends Controller
      */
     public function edit($id)
     {
-        $siteMaster = SiteMaster::where('id', $id)->first();
-        // $user = User::find($userProfile->user_id);
-        // $userRole = $user->roles->pluck('name')->toArray();
-        // $locations = Location::get();
-        return view('sitemaster::edit', compact('siteMaster'));
+        $site = SiteMaster::findOrFail($id);
+        $siteSupervisor = SiteSupervisor::where('site_master_id',$site->id)->get();
+        $supervisor = User::role('Supervisor')->get();
+        $state = State::all();
+        $cities = City::where('state_id', $site->state_id)->get(); // Load based on selected state
+
+        return view('sitemaster::edit', compact('site', 'supervisor', 'state', 'cities','siteSupervisor'));
+        // $siteMaster = SiteMaster::where('id', $id)->first();
+        // return view('sitemaster::edit', compact('siteMaster'));
     }
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id)
     {
-        $userProfile = UserProfile::where('id', $request->user_profile_id)->first();
-        $user = User::where('id', $userProfile->user_id)->first();
         $validator = Validator::make($request->all(), [
-            'mobile' => [
+            'site_name' => [
                 'required',
-                Rule::unique('site_masters')->where(function ($query) use ($request) {
-                    return $query->where('deleted_at', '=', null);
-                })->ignore($user->id),
+                Rule::unique('site_masters')->ignore($id)->where(function ($query) {
+                    return $query->whereNull('deleted_at');
+                }),
             ],
-            'username' => [
-                'required',
-                Rule::unique('site_masters')->where(function ($query) use ($request) {
-                    return $query->where('deleted_at', '=', null);
-                })->ignore($user->id),
-            ],
-            'email' => [
-                Rule::unique('site_masters')->where(function ($query) use ($request) {
-                    return $query->where('deleted_at', '=', null);
-                })->ignore($user->id),
-            ],
-            'password' => 'nullable|min:8|regex:/[a-z]/|regex:/[A-Z]/|regex:/[0-9]/|regex:/[@$!%*#?&]/',
-            'confirm_password' => 'nullable|same:password',
-            'roles' => 'required'
         ], [
-            'mobile.required' => __('user::message.enter_mobile'),
-            'mobile.numeric' => __('user::message.enter_mobile'),
-            'mobile.digits' => __('user::message.enter_digits'),
-            'username.required' => __('user::message.enter_username'),
-            'password.min' => __('user::message.enter_password_min'),
-            'password.regex' => __('user::message.enter_password_regex'),
-            'roles' => __('user::message.select_designation')
+            'site_name.required' => __('sitemaster::message.enter_site_name'),
+            'site_name.unique' => __('sitemaster::message.enter_unique_site_name'),
         ]);
+
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
         DB::beginTransaction();
         try {
-            $user = User::where('id', $userProfile->user_id)->first();
-            $user->name = ucwords($request->firstname) . ' ' . ucwords($request->lastname);
-            $user->email = strtolower($request->email);
-            $user->mobile = $request->mobile;
-            $user->username = $request->username;
-            // $user->status = 'Active';
-            $user->status = $request->status;
+            $siteMaster = SiteMaster::findOrFail($id);
+            $country = Country::where('name', 'India')->first();
+            $countryID = $country ? $country->id : null;
 
-            $user->save();
-            $user->syncRoles([]);
-            $user->assignRole($request->input('roles'));
+            $siteMaster->site_name = ucwords($request->site_name);
+            $siteMaster->address = $request->address;
+            $siteMaster->country_id = $countryID;
+            $siteMaster->state_id = $request->state_id;
+            $siteMaster->city_id = $request->city_id;
+            $siteMaster->pincode = $request->pincode;
+            $siteMaster->save();
 
-            $userProfile->firstname = ucwords($request->firstname);
-            $userProfile->lastname = ucwords($request->lastname);
-            $userProfile->date_of_birth = (!empty($request->dateofbirth)) ? date('Y-m-d', strtotime($request->dateofbirth)) : null;
-            $result = $userProfile->save();
-            if ($result) {
-                DB::commit();
-                return redirect()->route('sitemaster.index')->with('success', 'User updated successfully');
-            } else {
-                DB::rollback();
-                return redirect()->back()->with('warning', 'User updated failed');
+            // Update supervisors
+            // First delete old
+            SiteSupervisor::where('site_master_id', $siteMaster->id)->delete();
+
+            // Then re-insert new ones
+            $userID = $request->user_id;
+            if ($userID) {
+                foreach ($userID as $user) {
+                    SiteSupervisor::create([
+                        'site_master_id' => $siteMaster->id,
+                        'user_id' => $user,
+                    ]);
+                }
             }
+
+            DB::commit();
+            return redirect()->route('sitemaster.index')->with('success', 'Site updated successfully');
         } catch (\Exception $e) {
             DB::rollback();
-            return redirect()->back()->with('error', 'Something went wrong. Please try again');
+            dd($e); // You can uncomment for debugging
+            return redirect()->back()->with('error', 'Something went wrong. Please try again.');
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -254,11 +250,21 @@ class SiteMasterController extends Controller
     public function destroy($id)
     {
         try {
-            $userProfile = UserProfile::where('id', $id)->first();
-            $user = User::findOrFail($userProfile->user_id);
-            $user->delete();
-            $userProfile->delete();
-            return response()->json(['status_code' => 200, 'message' => 'Deleted successfully.']);
+            $siteMaster = SiteMaster::select('id')->where('id', $id)->first();
+            if (!is_null($siteMaster)) {
+                $income = IncomeMaster::Where('site_id', $siteMaster->id)->count();
+                $expense = ExpenseMaster::Where('site_id', $siteMaster->id)->count();
+                $rawMaterialStock = RawMaterialStock::Where('site_id', $siteMaster->id)->count();
+                $contractor = Contractor::Where('site_id', $siteMaster->id)->count();
+                if ($income == 0 || $expense == 0 || $rawMaterialStock == 0 || $contractor == 0) {
+                    $siteMaster->delete();
+                    return response()->json(['status_code' => 200, 'message' => 'Deleted successfully.']);
+                } else {
+                    return response()->json(['status_code' => 201, 'message' => 'This Site already use in another module.']);
+                }
+            } else {
+                return response()->json(['status_code' => 404, 'message' => 'Site not found.']);
+            }
         } catch (\Exception $e) {
             return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
         }

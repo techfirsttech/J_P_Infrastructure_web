@@ -24,7 +24,7 @@ class SupplierController extends Controller
     public function index()
     {
         if (request()->ajax()) {
-            return DataTables::of(Supplier::select('id', 'name', 'supplier_code', 'mobile', 'contact_number', 'gst_number'))
+            return DataTables::of(Supplier::select('id', 'supplier_name', 'supplier_code', 'mobile', 'contact_number', 'gst_number'))
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     // $flag = supplier_delete_check($row->id);
@@ -35,8 +35,8 @@ class SupplierController extends Controller
                     $editURL = route('supplier.edit', $row->id);
                     return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL'));
                 })
-                ->editColumn('name', function ($row) {
-                    return '<a href="javascript:void(0);" class="view" data-id="' . $row->id . '">' . $row->name . ' (' . $row->supplier_code . ')</a>';
+                ->editColumn('supplier_name', function ($row) {
+                    return '<a href="javascript:void(0);" class="view" data-id="' . $row->id . '">' . $row->supplier_name . ' (' . $row->supplier_code . ')</a>';
                 })
                 ->escapeColumns([])
                 ->make(true);
@@ -55,21 +55,23 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => ['required',  Rule::unique('suppliers')->where(function ($query) {
+            'supplier_name' => ['required',  Rule::unique('suppliers')->where(function ($query) {
                 return $query->where('deleted_at', null);
             })]
         ], [
-            'name.required' => __('supplier::message.enter_name'),
-            'name.unique' => __('supplier::message.enter_unique_name'),
+            'supplier_name.required' => __('supplier::message.enter_supplier_name'),
+            'supplier_name.unique' => __('supplier::message.enter_unique_supplier_name'),
         ]);
         if ($validator->fails()) {
             return response()->json(['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()]);
         }
         DB::beginTransaction();
         try {
+            $yearID = getSelectedYear();
+
             $data = [
                 'supplier_code' => $request->supplier_code,
-                'name' => ucwords($request->name),
+                'supplier_name' => ucwords($request->supplier_name),
                 'mobile' => $request->mobile,
                 'contact_number' => $request->contact_number,
                 'email' => $request->email,
@@ -84,6 +86,8 @@ class SupplierController extends Controller
                 'country_id' => $request->country_id,
                 'state_id' => $request->state_id,
                 'city_id' => $request->city_id,
+                'year_id' => $yearID,
+
             ];
             $result = Supplier::create($data);
             if (!is_null($result)) {
@@ -102,7 +106,7 @@ class SupplierController extends Controller
     public function show($id)
     {
         try {
-            $query = Supplier::with('country', 'state', 'city')->select('id', 'supplier_code', 'name', 'mobile', 'contact_number', 'email', 'gst_number', 'gst_apply', 'contact_person_name', 'contact_person_number', 'address_line_1', 'address_line_2', 'address_line_3', 'term_condition', 'country_id', 'state_id', 'city_id')->where('id', $id)->first();
+            $query = Supplier::with('country', 'state', 'city')->select('id', 'supplier_code', 'supplier_name', 'mobile', 'contact_number', 'email', 'gst_number', 'gst_apply', 'contact_person_name', 'contact_person_number', 'address_line_1', 'address_line_2', 'address_line_3', 'term_condition', 'country_id', 'state_id', 'city_id')->where('id', $id)->first();
             if (!is_null($query)) {
                 $data['html'] = view('supplier::model', compact('query'))->render();
                 return response()->json($data);
@@ -117,7 +121,7 @@ class SupplierController extends Controller
     public function edit($id)
     {
         try {
-            $supplier = Supplier::select('id', 'supplier_code', 'name', 'mobile', 'contact_number', 'email', 'gst_number', 'gst_apply', 'contact_person_name', 'contact_person_number', 'address_line_1', 'address_line_2', 'address_line_3', 'term_condition', 'country_id', 'state_id', 'city_id')->where('id', $id)->first();
+            $supplier = Supplier::select('id', 'supplier_code', 'supplier_name', 'mobile', 'contact_number', 'email', 'gst_number', 'gst_apply', 'contact_person_name', 'contact_person_number', 'address_line_1', 'address_line_2', 'address_line_3', 'term_condition', 'country_id', 'state_id', 'city_id')->where('id', $id)->first();
             if (!is_null($supplier)) {
                 // if (supplier_delete_check($supplier->id)) {
                 $country = Country::select('id', 'name', 'code')->get();
@@ -136,13 +140,13 @@ class SupplierController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => ['required', Rule::unique('suppliers')->where(function ($query) use ($id) {
+            'supplier_name' => ['required', Rule::unique('suppliers')->where(function ($query) use ($id) {
                 return $query->where([['deleted_at', null], ['id', '!=', $id]]);
             })],
 
         ], [
-            'name.required' => __('supplier::message.enter_name'),
-            'name.unique' => __('supplier::message.enter_unique_name'),
+            'supplier_name.required' => __('supplier::message.enter_supplier_name'),
+            'supplier_name.unique' => __('supplier::message.enter_unique_supplier_name'),
         ]);
         if ($validator->fails()) {
             return response()->json(['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()]);
@@ -152,7 +156,7 @@ class SupplierController extends Controller
             $supplier = Supplier::where('id', $id)->first();
             $data = [
                 'supplier_code' => $request->supplier_code,
-                'name' => ucwords($request->name),
+                'supplier_name' => ucwords($request->supplier_name),
                 'mobile' => $request->mobile,
                 'contact_number' => $request->contact_number,
                 'email' => $request->email,

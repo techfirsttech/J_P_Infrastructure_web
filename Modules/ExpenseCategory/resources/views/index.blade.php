@@ -18,7 +18,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>{{ __('expensecategory::message.name') }}</th>
-                                <th>{{ __('message.common.status') }}</th>
+                                {{-- <th>{{ __('message.common.status') }}</th> --}}
                                 <th>{{ __('message.common.action') }}</th>
                             </tr>
                         </thead>
@@ -52,7 +52,7 @@
                             </div>
 
 
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
+                            {{-- <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
                                    <label for="expense_category_status_id" class="form-label">{{ __('message.common.status') }}</label>
                                    <select id="expense_category_status_id" name="expense_category_status_id" class="select2 form-select" data-placeholder="{{ __('message.common.select') }}">
                                         <option value=""></option>
@@ -63,7 +63,7 @@
                                         @endif
                                    </select>
                                    <span class="invalid-feedback d-block" id="error_expense_category_status_id" role="alert"></span>
-                            </div>
+                            </div> --}}
 
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 mt-1">
                                 <button type="button" data-bs-dismiss="modal" aria-label="Close"
@@ -133,10 +133,10 @@
                     //      name: 'expense_category_status_id',
                     //      className: 'text-nowrap'
                     // },
-                    {
-                         data: 'expense_category_status_id',
-                         name: 'expense_category_status_id'
-                    },
+                    // {
+                    //      data: 'expense_category_status_id',
+                    //      name: 'expense_category_status_id'
+                    // },
                     {
                          data: 'action',
                          name: 'action',
@@ -195,7 +195,7 @@
                     if (response.status_code == 200) {
                          $("#exampleModalTitle").html("{{ __('expensecategory::message.edit') }}");
                          $("#expense_category_name").val(response.result.expense_category_name);
-                         $("#expense_category_status_id").val(response.result.expense_category_status_id).trigger('change');
+                        //  $("#expense_category_status_id").val(response.result.expense_category_status_id).trigger('change');
                          $("#id").val(id);
                          $("#inlineModal").modal('show');
                     } else if (response.status_code == 201) {

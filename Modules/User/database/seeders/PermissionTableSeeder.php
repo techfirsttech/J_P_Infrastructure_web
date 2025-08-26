@@ -111,7 +111,20 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'Supplier', 'name' => 'supplier-edit', 'title' => 'Edit'],
             ['title_tag' => 'Supplier', 'name' => 'supplier-delete', 'title' => 'Delete'],
 
+            ['title_tag' => 'Labour', 'name' => 'labour-list', 'title' => 'List'],
+            ['title_tag' => 'Labour', 'name' => 'labour-create', 'title' => 'Create'],
+            ['title_tag' => 'Labour', 'name' => 'labour-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Labour', 'name' => 'labour-delete', 'title' => 'Delete'],
 
+            ['title_tag' => 'Attendance', 'name' => 'attendance-list', 'title' => 'List'],
+            ['title_tag' => 'Attendance', 'name' => 'attendance-create', 'title' => 'Create'],
+            ['title_tag' => 'Attendance', 'name' => 'attendance-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Attendance', 'name' => 'attendance-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Contractor', 'name' => 'contractor-list', 'title' => 'List'],
+            ['title_tag' => 'Contractor', 'name' => 'contractor-create', 'title' => 'Create'],
+            ['title_tag' => 'Contractor', 'name' => 'contractor-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Contractor', 'name' => 'contractor-delete', 'title' => 'Delete'],
         ];
 
         foreach ($permissions as $permissionData) {

@@ -20,7 +20,7 @@ class PaymentMaster extends  BaseModel
         'deleted_at'
     ];
 
-    protected $fillable = ['id', 'site_id', 'supervisor_id', 'model_type','model_type','amount','status','remark','year_id','created_by','updated_by','deleted_by'];
+    protected $fillable = ['id', 'site_id', 'supervisor_id', 'model_type','amount','status','remark','year_id','date','created_by','updated_by','deleted_by'];
 
 
     // protected static function newFactory(): PaymentMasterFactory

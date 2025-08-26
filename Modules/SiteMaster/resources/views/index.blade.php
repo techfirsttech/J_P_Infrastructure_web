@@ -96,11 +96,11 @@
                 },
                 {
                     data: 'state_name',
-                    name: 'state_name'
+                    name: 'site_master_statuses.status_name'
                 },
                 {
                     data: 'city_name',
-                    name: 'city_name'
+                    name: 'cities.name'
                 },
                 {
                     data: 'address',

@@ -5,6 +5,7 @@ namespace Modules\SiteMaster\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -19,7 +20,9 @@ class SiteMasterApiController extends Controller
     public function index()
     {
         try {
-            $siteMasters = SiteMaster::select(
+            $user = Auth::user();
+            $role = $user->roles->first()->name ?? '';
+            $query = SiteMaster::select(
                 'site_masters.id',
                 'site_masters.site_name',
                 'site_masters.address',
@@ -37,8 +40,12 @@ class SiteMasterApiController extends Controller
                 ->leftJoin('states', 'states.id', '=', 'site_masters.state_id')
                 ->leftJoin('cities', 'cities.id', '=', 'site_masters.city_id')
                 ->leftJoin('site_master_statuses', 'site_master_statuses.id', '=', 'site_masters.site_master_status_id')
-                ->orderBy('site_masters.id', 'DESC')
-                ->simplePaginate(12);
+                ->orderBy('site_masters.id', 'DESC');
+            if ($role === 'Supervisor') {
+                $siteIds = SiteSupervisor::where('user_id', $user->id)->pluck('site_master_id')->toArray();
+                $query->whereIn('site_masters.id', $siteIds);
+            }
+            $siteMasters = $query->simplePaginate(12);
 
             foreach ($siteMasters as $site) {
                 $site->supervisors = SiteSupervisor::where('site_master_id', $site->id)
@@ -115,7 +122,6 @@ class SiteMasterApiController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->logToCustomFile($e);
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
     }
@@ -226,10 +232,34 @@ class SiteMasterApiController extends Controller
         }
     }
 
-    public function siteDropdown()
+    // public function siteDropdown()
+    // {
+    //     try {
+    //         $siteDropdown = SiteMaster::select('id', 'site_name')->get();
+    //         foreach ($siteDropdown as $site) {
+    //             $site->supervisors = SiteSupervisor::where('site_master_id', $site->id)
+    //                 ->leftJoin('users', 'site_supervisors.user_id', 'users.id')
+    //                 ->select('site_supervisors.user_id', 'users.name')
+    //                 ->get();
+    //         }
+
+    //         return response(['status' => true, 'message' => 'Site Dropdown', 'site_dropdown' => $siteDropdown], 200);
+    //     } catch (Exception $e) {
+    //         return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
+    //     }
+    // }
+
+    public function siteDropdown(Request $request)
     {
         try {
-            $siteDropdown = SiteMaster::select('id', 'site_name')->get();
+            $userId = $request->input('supervisor_id');
+            $query = SiteMaster::select('id', 'site_name');
+            if ($userId) {
+                $query->whereIn('id', function ($subQuery) use ($userId) {
+                    $subQuery->select('site_master_id')->from('site_supervisors')->where('user_id', $userId);
+                });
+            }
+            $siteDropdown = $query->get();
             return response(['status' => true, 'message' => 'Site Dropdown', 'site_dropdown' => $siteDropdown], 200);
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);

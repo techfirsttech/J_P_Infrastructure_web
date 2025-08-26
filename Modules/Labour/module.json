@@ -1,0 +1,11 @@
+{
+    "name": "Labour",
+    "alias": "labour",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Labour\\Providers\\LabourServiceProvider"
+    ],
+    "files": []
+}

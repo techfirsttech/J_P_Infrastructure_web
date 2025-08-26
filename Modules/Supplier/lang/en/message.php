@@ -7,6 +7,8 @@ return [
     'edit' => 'Edit Supplier',
     'supplier_details' => 'Supplier Details',
     'name' => 'Name',
+    'enter_supplier_name' => 'Enter supplier name',
+    'supplier_name' => 'Supplier Name',
     'code' => 'Supplier Code',
     'mobile' => 'Mobile No.',
     'contact_number' => 'Contact No.',

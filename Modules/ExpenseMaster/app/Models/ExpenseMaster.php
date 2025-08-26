@@ -20,7 +20,7 @@ class ExpenseMaster extends BaseModel
         'deleted_at'
     ];
 
-    protected $fillable = ['id', 'site_id', 'supervisor_id', 'expense_category_id','amount','document','remark','year_id','created_by','updated_by','deleted_by'];
+    protected $fillable = ['id', 'site_id', 'supervisor_id', 'date','expense_category_id','amount','document','remark','year_id','created_by','updated_by','deleted_by'];
 
     // protected static function newFactory(): ExpenseMasterFactory
     // {
