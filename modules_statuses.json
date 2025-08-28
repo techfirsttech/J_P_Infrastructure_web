@@ -22,5 +22,6 @@
     "Supplier": true,
     "Labour": true,
     "Attendance": true,
-    "Contractor": true
+    "Contractor": true,
+    "StockTransfer": true
 }

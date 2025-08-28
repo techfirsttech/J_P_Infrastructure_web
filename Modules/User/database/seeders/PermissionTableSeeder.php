@@ -125,6 +125,11 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'Contractor', 'name' => 'contractor-create', 'title' => 'Create'],
             ['title_tag' => 'Contractor', 'name' => 'contractor-edit', 'title' => 'Edit'],
             ['title_tag' => 'Contractor', 'name' => 'contractor-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'StockTransfer', 'name' => 'stoke-transfer-list', 'title' => 'List'],
+            ['title_tag' => 'StockTransfer', 'name' => 'stoke-transfer-create', 'title' => 'Create'],
+            ['title_tag' => 'StockTransfer', 'name' => 'stoke-transfer-edit', 'title' => 'Edit'],
+            ['title_tag' => 'StockTransfer', 'name' => 'stoke-transfer-delete', 'title' => 'Delete'],
         ];
 
         foreach ($permissions as $permissionData) {

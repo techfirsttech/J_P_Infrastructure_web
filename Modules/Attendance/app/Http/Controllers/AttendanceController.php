@@ -11,42 +11,92 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Modules\Attendance\Models\Attendance;
 use Modules\Labour\Models\Labour;
+use Yajra\DataTables\Facades\DataTables;
 
 class AttendanceController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        $query = Attendance::select(
+            'attendances.id',
+            'attendances.supervisor_id',
+            'attendances.site_id',
+            'attendances.contractor_id',
+            'attendances.labour_id',
+            'attendances.type',
+            'attendances.date',
+            'users.name as supervisor_name',
+            'site_masters.site_name',
+            'contractors.contractor_name',
+            'labours.labour_name',
+        )
+            ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
+            ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
+            ->leftJoin('labours', 'labours.id', '=', 'attendances.labour_id')
+            ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id');
+
+        $user = Auth::user();
+        $role = $user->roles->first();
+
+        if ($role && $role->name === 'Supervisor') {
+            $query->where('attendances.supervisor_id', $user->id);
+        }
+
+        if ($request->filled('supervisor_id')) {
+            $query->where('attendances.supervisor_id', $request->supervisor_id);
+        }
+        if ($request->filled('site_id')) {
+            $query->where('attendances.site_id', $request->site_id);
+        }
+        if ($request->filled('contractor_id')) {
+            $query->where('attendances.contractor_id', $request->contractor_id);
+        }
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
+            $query->whereBetween('attendances.created_at', [$startDate, $endDate]);
+        } elseif ($request->filled('start_date')) {
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $query->where('attendances.created_at', '>=', $startDate);
+        } elseif ($request->filled('end_date')) {
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
+            $query->where('attendances.created_at', '<=', $endDate);
+        }
+
+        if (request()->ajax()) {
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $show = '';
+                    $edit = '';
+                    $delete = '';
+                    $assign = ''; //'assign-user-list';
+                    $showURL = "";
+                    $editURL = "";
+                    return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign'));
+                })
+                ->escapeColumns([])
+                ->make(true);
+        } else {
+            return view('attendance::index');
+        }
+    }
 
     // public function index(Request $request)
     // {
     //     try {
     //         $user = Auth::user();
-
-    //         // Base Query
     //         $baseQuery = Attendance::query()
     //             ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
     //             ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
     //             ->leftJoin('labours', 'labours.id', '=', 'attendances.labour_id')
     //             ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id');
 
-    //         // Supervisor restriction
     //         if ($user->role === 'supervisor') {
     //             $baseQuery->where('attendances.supervisor_id', $user->id);
     //         }
 
-    //         // Filters
-    //         if ($request->filled('site_id')) {
-    //             $baseQuery->where('attendances.site_id', $request->site_id);
-    //         }
-    //         if ($request->filled('supervisor_id')) {
-    //             $baseQuery->where('attendances.supervisor_id', $request->supervisor_id);
-    //         }
-    //         if ($request->filled('labour_id')) {
-    //             $baseQuery->where('attendances.labour_id', $request->labour_id);
-    //         }
-    //         if ($request->filled('type')) {
-    //             $baseQuery->where('attendances.type', $request->type);
-    //         }
-
-    //         // Date range
     //         if ($request->filled('start_date') && $request->filled('end_date')) {
     //             $start = Carbon::parse($request->start_date)->startOfDay();
     //             $end = Carbon::parse($request->end_date)->endOfDay();
@@ -61,116 +111,67 @@ class AttendanceController extends Controller
     //             $baseQuery->whereDate('attendances.created_at', Carbon::today());
     //         }
 
-    //         // Labour wise count
-    //         $labourSummary = (clone $baseQuery)
+    //         // Get data
+    //         $attendanceData = $baseQuery
     //             ->select(
-    //                 'attendances.labour_id',
-    //                 'labours.labour_name',
+    //                 'attendances.site_id',
     //                 'site_masters.site_name',
-    //                 'users.name as supervisor_name',
-    //                 DB::raw("SUM(CASE WHEN attendances.type = 'Full' THEN 1 ELSE 0 END) as full_days"),
-    //                 DB::raw("SUM(CASE WHEN attendances.type = 'Half' THEN 1 ELSE 0 END) as half_days"),
-    //                 DB::raw("SUM(CASE WHEN attendances.type = 'Absent' THEN 1 ELSE 0 END) as absent_days")
-    //             )
-    //             ->groupBy('attendances.labour_id', 'labours.labour_name', 'site_masters.site_name', 'users.name')
-    //             ->orderBy('labours.labour_name')
-    //             ->get();
-
-    //         // Totals
-    //         $totalFull = $labourSummary->sum('full_days');
-    //         $totalHalf = $labourSummary->sum('half_days');
-    //         $totalAbsent = $labourSummary->sum('absent_days');
-
-    //         return response([ 'status' => true, 'message' => 'Labour-wise Attendance Summary','result' => $labourSummary, 'total_full' => $totalFull,'total_half' => $totalHalf,'total_absent' => $totalAbsent,], 200);
-    //     } catch (\Exception $e) {
-    //         return response([ 'status' => false,'message' => 'Something went wrong.','error' => $e->getMessage()], 500);
-    //     }
-    // }
-
-    // clear code=========================
-    // public function index(Request $request)
-    // {
-    //     try {
-    //         $user = Auth::user();
-
-    //         // Base Query
-    //         $baseQuery = Attendance::query()
-    //             ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
-    //             ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
-    //             ->leftJoin('labours', 'labours.id', '=', 'attendances.labour_id')
-    //             ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id'); // 👈 Contractor join
-
-    //         // Supervisor restriction
-    //         if ($user->role === 'supervisor') {
-    //             $baseQuery->where('attendances.supervisor_id', $user->id);
-    //         }
-
-    //         // Filters
-    //         if ($request->filled('site_id')) {
-    //             $baseQuery->where('attendances.site_id', $request->site_id);
-    //         }
-    //         if ($request->filled('supervisor_id')) {
-    //             $baseQuery->where('attendances.supervisor_id', $request->supervisor_id);
-    //         }
-    //         if ($request->filled('labour_id')) {
-    //             $baseQuery->where('attendances.labour_id', $request->labour_id);
-    //         }
-    //         if ($request->filled('contractor_id')) {
-    //             $baseQuery->where('attendances.contractor_id', $request->contractor_id); // 👈 Contractor filter
-    //         }
-    //         if ($request->filled('type')) {
-    //             $baseQuery->where('attendances.type', $request->type);
-    //         }
-
-    //         // Date range
-    //         if ($request->filled('start_date') && $request->filled('end_date')) {
-    //             $start = Carbon::parse($request->start_date)->startOfDay();
-    //             $end = Carbon::parse($request->end_date)->endOfDay();
-    //             $baseQuery->whereBetween('attendances.created_at', [$start, $end]);
-    //         } elseif ($request->filled('start_date')) {
-    //             $start = Carbon::parse($request->start_date)->startOfDay();
-    //             $baseQuery->where('attendances.created_at', '>=', $start);
-    //         } elseif ($request->filled('end_date')) {
-    //             $end = Carbon::parse($request->end_date)->endOfDay();
-    //             $baseQuery->where('attendances.created_at', '<=', $end);
-    //         } else {
-    //             $baseQuery->whereDate('attendances.created_at', Carbon::today());
-    //         }
-
-    //         // Labour wise count
-    //         $labourSummary = (clone $baseQuery)
-    //             ->select(
+    //                 'attendances.contractor_id',
+    //                 'contractors.contractor_name',
     //                 'attendances.labour_id',
+    //                 'attendances.type',
     //                 'labours.labour_name',
-    //                 'site_masters.site_name',
-    //                 'users.name as supervisor_name',
-    //                 'contractors.contractor_name', // 👈 Contractor name
     //                 DB::raw("SUM(CASE WHEN attendances.type = 'Full' THEN 1 ELSE 0 END) as full_days"),
     //                 DB::raw("SUM(CASE WHEN attendances.type = 'Half' THEN 1 ELSE 0 END) as half_days"),
     //                 DB::raw("SUM(CASE WHEN attendances.type = 'Absent' THEN 1 ELSE 0 END) as absent_days")
     //             )
     //             ->groupBy(
-    //                 'attendances.labour_id',
-    //                 'labours.labour_name',
+    //                 'attendances.site_id',
     //                 'site_masters.site_name',
-    //                 'users.name',
-    //                 'contractors.contractor_name' // 👈 Group by contractor name
+    //                 'attendances.contractor_id',
+    //                 'contractors.contractor_name',
+    //                 'attendances.labour_id',
+    //                 'attendances.type',
+    //                 'labours.labour_name'
     //             )
-    //             ->orderBy('labours.labour_name')
+    //             ->orderBy('site_masters.site_name')
     //             ->get();
 
-    //         // Totals
-    //         $totalFull = $labourSummary->sum('full_days');
-    //         $totalHalf = $labourSummary->sum('half_days');
-    //         $totalAbsent = $labourSummary->sum('absent_days');
+    //         // Nest data: Site > Contractor > Labour
+    //         $grouped = $attendanceData
+    //             ->groupBy('site_id')
+    //             ->map(function ($siteGroup) {
+    //                 $site = $siteGroup->first();
+
+    //                 return [
+    //                     'site_id' => $site->site_id,
+    //                     'site_name' => $site->site_name,
+    //                     'contractors' => $siteGroup->groupBy('contractor_id')->map(function ($contractorGroup) {
+    //                         $contractor = $contractorGroup->first();
+
+    //                         return [
+    //                             'contractor_id' => $contractor->contractor_id,
+    //                             'contractor_name' => $contractor->contractor_name,
+    //                             'labours' => $contractorGroup->map(function ($row) {
+    //                                 return [
+    //                                     'labour_id' => $row->labour_id,
+    //                                     'labour_name' => $row->labour_name,
+    //                                     'type' => $row->type,
+    //                                     'full_days' => $row->full_days,
+    //                                     'half_days' => $row->half_days,
+    //                                     'absent_days' => $row->absent_days,
+    //                                 ];
+    //                             })->values()
+    //                         ];
+    //                     })->values()
+    //                 ];
+    //             })
+    //             ->values();
 
     //         return response([
     //             'status' => true,
-    //             'message' => 'Labour-wise Attendance Summary',
-    //             'result' => $labourSummary,
-    //             'total_full' => $totalFull,
-    //             'total_half' => $totalHalf,
-    //             'total_absent' => $totalAbsent,
+    //             'message' => 'Attendance List',
+    //             'data' => $grouped
     //         ], 200);
     //     } catch (\Exception $e) {
     //         return response([
@@ -178,155 +179,6 @@ class AttendanceController extends Controller
     //             'message' => 'Something went wrong.',
     //             'error' => $e->getMessage()
     //         ], 500);
-    //     }
-    // }
-
-
-    public function index(Request $request)
-    {
-        try {
-            $user = Auth::user();
-            $baseQuery = Attendance::query()
-                ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
-                ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
-                ->leftJoin('labours', 'labours.id', '=', 'attendances.labour_id')
-                ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id');
-
-            if ($user->role === 'supervisor') {
-                $baseQuery->where('attendances.supervisor_id', $user->id);
-            }
-
-            if ($request->filled('start_date') && $request->filled('end_date')) {
-                $start = Carbon::parse($request->start_date)->startOfDay();
-                $end = Carbon::parse($request->end_date)->endOfDay();
-                $baseQuery->whereBetween('attendances.created_at', [$start, $end]);
-            } elseif ($request->filled('start_date')) {
-                $start = Carbon::parse($request->start_date)->startOfDay();
-                $baseQuery->where('attendances.created_at', '>=', $start);
-            } elseif ($request->filled('end_date')) {
-                $end = Carbon::parse($request->end_date)->endOfDay();
-                $baseQuery->where('attendances.created_at', '<=', $end);
-            } else {
-                $baseQuery->whereDate('attendances.created_at', Carbon::today());
-            }
-
-            // Get data
-            $attendanceData = $baseQuery
-                ->select(
-                    'attendances.site_id',
-                    'site_masters.site_name',
-                    'attendances.contractor_id',
-                    'contractors.contractor_name',
-                    'attendances.labour_id',
-                    'attendances.type',
-                    'labours.labour_name',
-                    DB::raw("SUM(CASE WHEN attendances.type = 'Full' THEN 1 ELSE 0 END) as full_days"),
-                    DB::raw("SUM(CASE WHEN attendances.type = 'Half' THEN 1 ELSE 0 END) as half_days"),
-                    DB::raw("SUM(CASE WHEN attendances.type = 'Absent' THEN 1 ELSE 0 END) as absent_days")
-                )
-                ->groupBy(
-                    'attendances.site_id',
-                    'site_masters.site_name',
-                    'attendances.contractor_id',
-                    'contractors.contractor_name',
-                    'attendances.labour_id',
-                    'attendances.type',
-                    'labours.labour_name'
-                )
-                ->orderBy('site_masters.site_name')
-                ->get();
-
-            // Nest data: Site > Contractor > Labour
-            $grouped = $attendanceData
-                ->groupBy('site_id')
-                ->map(function ($siteGroup) {
-                    $site = $siteGroup->first();
-
-                    return [
-                        'site_id' => $site->site_id,
-                        'site_name' => $site->site_name,
-                        'contractors' => $siteGroup->groupBy('contractor_id')->map(function ($contractorGroup) {
-                            $contractor = $contractorGroup->first();
-
-                            return [
-                                'contractor_id' => $contractor->contractor_id,
-                                'contractor_name' => $contractor->contractor_name,
-                                'labours' => $contractorGroup->map(function ($row) {
-                                    return [
-                                        'labour_id' => $row->labour_id,
-                                        'labour_name' => $row->labour_name,
-                                        'type' => $row->type,
-                                        'full_days' => $row->full_days,
-                                        'half_days' => $row->half_days,
-                                        'absent_days' => $row->absent_days,
-                                    ];
-                                })->values()
-                            ];
-                        })->values()
-                    ];
-                })
-                ->values();
-
-            return response([
-                'status' => true,
-                'message' => 'Attendance List',
-                'data' => $grouped
-            ], 200);
-        } catch (\Exception $e) {
-            return response([
-                'status' => false,
-                'message' => 'Something went wrong.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-
-
-    // public function index(Request $request)
-    // {
-    //     try {
-    //          $user = Auth::user();
-
-    //         $attendances = Attendance::select(
-    //             'attendances.id',
-    //             'attendances.site_id',
-    //             'attendances.supervisor_id',
-    //             'attendances.labour_id',
-    //             'attendances.type',
-    //             'attendances.amount',
-
-    //             'site_masters.site_name',
-    //             'users.name as supervisor_name',
-    //             'labours.labour_name',
-    //         )
-    //             ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
-    //             ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
-    //             ->leftJoin('labours', 'labours.id', '=', 'attendances.labour_id')
-    //             ->when($user->role === 'supervisor', function ($query) use ($user) {
-    //                 return $query->where('attendances.supervisor_id', $user->id);
-    //             })
-
-    //             ->when($request->site_id, function ($query) use ($request) {
-    //                 return $query->where('attendances.site_id', $request->site_id);
-    //             })
-    //             ->when($request->supervisor_id, function ($query) use ($request) {
-    //                 return $query->where('attendances.supervisor_id', $request->supervisor_id);
-    //             })
-    //             ->when($request->labour_id, function ($query) use ($request) {
-    //                 return $query->where('attendances.labour_id', $request->labour_id);
-    //             })
-    //             ->when($request->type, function ($query) use ($request) {
-    //                 return $query->where('attendances.type', $request->type);
-    //             })
-
-    //             ->orderBy('attendances.id', 'DESC')
-    //             ->simplePaginate(12);
-
-
-    //         return response(['status' => true, 'message' => 'Attendances List', 'half'=> '','full'=> '', 'absent'=> '', 'result' => $attendances->items()], 200);
-    //     } catch (Exception $e) {
-    //         return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
     //     }
     // }
 
@@ -422,60 +274,10 @@ class AttendanceController extends Controller
         }
     }
 
-
-    // public function store(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'site_id' => 'required|integer|exists:site_masters,id',
-
-    //     ], [
-    //         'site_id.required' => 'Site ID is required.',
-    //         'site_id.integer' => 'Site ID is must be integer.',
-    //         'site_id.exists' => 'The selected site id does not exist',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         $error = $validator->errors();
-    //         $response = ['status' => false, 'message' => 'Please input proper data.', 'errors' => $error];
-    //         return response()->json($response, 422);
-    //     }
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $yearID = getSelectedYear();
-
-    //         foreach ($request->labour as $labour) {
-    //             $dailyWage = Labour::where('id', $labour['labour_id'])->value('daily_wage');
-    //             $attendance = new Attendance();
-    //             $attendance->supervisor_id = Auth::id();
-    //             $attendance->site_id = $request->site_id;
-    //             $attendance->labour_id = $labour['labour_id'];
-    //             $attendance->type = $labour['type'];
-    //             if ($labour['type'] == 'Half') {
-    //                 $amount = $dailyWage / 2;
-    //             } elseif ($labour['type'] == 'Full') {
-    //                 $amount = $dailyWage;
-    //             } else {
-    //                 $amount = 00.00;
-    //             }
-    //             $attendance->amount = $amount;
-    //             $attendance->year_id = $yearID;
-    //             $attendance->save();
-    //         }
-
-    //         DB::commit();
-    //         return response()->json(['status' => true, 'message' => 'Labour attendance successfully.'], 200);
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 500);
-    //     }
-    // }
-
     public function show($id)
     {
         return view('attendance::show');
     }
-
 
     public function edit($id)
     {
@@ -539,16 +341,4 @@ class AttendanceController extends Controller
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
     }
-
-
-    // public function labourDropdown(Request $request)
-    // {
-    //     try {
-
-    //         $labourList = Labour::select('id', 'supervisor_id','site_id','labour_name','mobile')->where('status','Active')->get();
-    //         return response(['status' => true,'message' => 'Labour List','labour_list' => $labourList], 200);
-    //     } catch (Exception $e) {
-    //         return response([ 'status' => false,'message' => 'Something went wrong. Please try again.'], 200);
-    //     }
-    // }
 }

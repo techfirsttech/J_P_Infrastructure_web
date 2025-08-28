@@ -14,4 +14,5 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::post('expense-update', [ExpenseMasterApiController::class, 'update']);
     Route::delete('expense-delete', [ExpenseMasterApiController::class, 'destroy']);
     Route::post('payment-ledger', [ExpenseMasterApiController::class, 'paymentLedger']);
+    Route::post('payment-ledger-pdf', [ExpenseMasterApiController::class, 'paymentLedgerPdf']);
 });

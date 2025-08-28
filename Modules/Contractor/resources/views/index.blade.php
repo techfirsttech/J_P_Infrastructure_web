@@ -18,7 +18,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>Site</th>
-                                <th>{{ __('contractor::message.name') }}</th>
+                                <th>Name</th>
                                 <th>{{ __('contractor::message.mobile') }}</th>
                                 <th>{{ __('message.common.action') }}</th>
                             </tr>

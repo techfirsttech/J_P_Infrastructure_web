@@ -4,6 +4,10 @@
     <div class="row">
         <div class="col-12 mb-2">
             <h5 class="content-header-title float-start mb-0">{{ __('attendance::message.list') }}</h5>
+            @can('attendance-create')
+                <a href="{{ route('attendance.create') }}" class="btn btn-sm btn-primary float-end new-create"><i
+                        class="fa fa-plus me-50"></i> {{ __('message.common.addNew') }}</a>
+            @endcan
         </div>
         <div class="col-12">
             <div class="card p-1">
@@ -12,12 +16,12 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>{{ __('attendance::message.expenseCategoryName') }}</th>
-                                <th>{{ __('attendance::message.site') }}</th>
                                 <th>{{ __('attendance::message.supervisor') }}</th>
-                                <th>{{ __('attendance::message.amount') }}</th>
-                                <th>{{ __('attendance::message.remark') }}</th>
-                                <th>Status</th>
+                                <th>{{ __('attendance::message.site') }}</th>
+                                <th>{{ __('attendance::message.contractor') }}</th>
+                                <th>{{ __('attendance::message.labour') }}</th>
+                                <th>{{ __('attendance::message.type') }}</th>
+                                <th>{{ __('attendance::message.date') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -73,8 +77,8 @@
                          }
                     },
                     {
-                         data: 'expense_category_name',
-                         name: 'expense_category_name'
+                         data: 'supervisor_name',
+                         name: 'supervisor_name'
                     },
 
                     {
@@ -82,21 +86,22 @@
                          name: 'site_name'
                     },
                     {
-                         data: 'supervisor_name',
-                         name: 'supervisor_name'
+                         data: 'contractor_name',
+                         name: 'contractor_name'
                     },
                     {
-                         data: 'amount',
-                         name: 'amount'
+                         data: 'labour_name',
+                         name: 'labour_name'
                     },
                     {
-                         data: 'remark',
-                         name: 'remark'
+                         data: 'type',
+                         name: 'type'
                     },
-                      {
-                         data: 'status',
-                         name: 'status'
-                    },
+                    {
+                         data: 'date',
+                         name: 'date'
+
+                    }
 
                ],
                initComplete: function(settings, json) {

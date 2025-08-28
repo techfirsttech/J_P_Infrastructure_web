@@ -81,6 +81,9 @@ class LabourApiController extends Controller
             // if ($request->filled('supervisor_id')) {
             //     $query->where('labours.supervisor_id', $request->supervisor_id);
             // }
+            if ($request->filled('contractor_id')) {
+                $query->where('labours.contractor_id', $request->contractor_id);
+            }
 
             $labour = $query->orderBy('labours.id', 'DESC')->simplePaginate(12);
 
