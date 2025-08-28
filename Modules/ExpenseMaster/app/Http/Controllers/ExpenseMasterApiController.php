@@ -3,6 +3,7 @@
 namespace Modules\ExpenseMaster\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ use Modules\ExpenseMaster\Models\ExpenseMaster;
 use Modules\PaymentMaster\Models\PaymentMaster;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Modules\User\Models\User;
 
 class ExpenseMasterApiController extends Controller
@@ -631,5 +633,98 @@ class ExpenseMasterApiController extends Controller
         imagedestroy($trueColor);
 
         return $filename;
+    }
+
+    public function paymentLedgerPdf(Request $request)
+    {
+        try {
+            $query = PaymentMaster::select(
+                'payment_masters.id',
+                'payment_masters.site_id',
+                'payment_masters.supervisor_id',
+                'payment_masters.model_type',
+                'payment_masters.model_id',
+                'payment_masters.amount',
+                DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
+                'payment_masters.status',
+                'site_masters.site_name',
+                'users.name as supervisor_name'
+            )
+                ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
+                ->leftJoin('users', 'users.id', '=', 'payment_masters.supervisor_id');
+
+            $user = Auth::user();
+            $role = $user->roles->first();
+
+            if ($role && $role->name === 'Supervisor') {
+                $query->where('payment_masters.supervisor_id', $user->id);
+            }
+
+            if ($request->filled('supervisor_id')) {
+                $query->where('payment_masters.supervisor_id', $request->supervisor_id);
+            }
+            if ($request->filled('site_id')) {
+                $query->where('payment_masters.site_id', $request->site_id);
+            }
+
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+                $query->whereBetween('payment_masters.created_at', [$startDate, $endDate]);
+            } elseif ($request->filled('start_date')) {
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+                $query->where('payment_masters.created_at', '>=', $startDate);
+            } elseif ($request->filled('end_date')) {
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+                $query->where('payment_masters.created_at', '<=', $endDate);
+            }
+
+            // Fetch data without pagination for PDF
+            $payments = $query->orderBy('payment_masters.id', 'DESC')->get();
+
+            // Format amount
+            $payments->transform(function ($item) {
+                $item->amount = floor($item->amount) == $item->amount ? (int)$item->amount : (float)$item->amount;
+                return $item;
+            });
+
+            // Totals
+            $totalExpense = $query->clone()->where('model_type', 'Expense')->sum('payment_masters.amount');
+            $totalIncome = $query->clone()->where('model_type', 'Income')->sum('payment_masters.amount');
+            $totalExpense = floor($totalExpense) == $totalExpense ? (int)$totalExpense : (float)$totalExpense;
+            $totalIncome = floor($totalIncome) == $totalIncome ? (int)$totalIncome : (float)$totalIncome;
+
+            // PDF data
+            $data = [
+                'title' => 'Ledger Report',
+                'payments' => $payments,
+                'total_expense' => $totalExpense,
+                'total_income' => $totalIncome,
+                'closing_balance' => $totalIncome - $totalExpense,
+                'filters' => $request->all()
+            ];
+
+            $pdf = Pdf::loadView('expensemaster::ledger-pdf', $data);
+            $pdf->setPaper('A4', 'portrait');
+
+            $fileName = 'ledger-' . Str::random(10) . '.pdf';
+            $folder = 'ledger';
+            $fileRelativePath = $folder . '/' . $fileName;
+
+            Storage::disk('public')->put($fileRelativePath, $pdf->output());
+            $fileUrl = url('public/storage/' . $fileRelativePath);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Ledger PDF generated successfully.',
+                'url' => $fileUrl
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

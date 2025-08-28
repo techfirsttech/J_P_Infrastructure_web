@@ -164,10 +164,12 @@ class IncomeMasterController extends Controller
 
     public function destroy($id)
     {
+        // dd($id);
         try {
             $incomeMaster = IncomeMaster::select('id')->where('id', $id)->first();
             if (!is_null($incomeMaster)) {
                 //  if (storage_delete_check($incomeMaster->id)) {
+                PaymentMaster::where([['model_type','Income'],['model_id',$id]])->delete();
                 $incomeMaster->delete();
                 return response()->json(['status_code' => 200, 'message' => 'Deleted successfully.']);
                 // } else {
