@@ -1,6 +1,6 @@
 <?php
 
-
+use Illuminate\Support\Facades\Auth;
 use Modules\User\Models\UserProfile;
 use Modules\Setting\Models\Setting;
 use Intervention\Image\Facades\Image;
@@ -389,4 +389,9 @@ if (!function_exists('loginStatus')) {
 
         return $dropDown;
     }
+}
+
+function role_super_admin()
+{
+    return (Auth::user()->roles[0]->name == 'Super Admin') ? true : false;
 }
