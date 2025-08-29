@@ -13,6 +13,9 @@ return [
     //common
     'expenseCategory' => 'Expense Category',
     'expense_category' => 'Expense Category',
+    'expenseMaster' => 'Expense Master',
+    'expense_master' => 'Expense Master',
+    'expensemaster' => 'Expense Master',
     'name' => 'Expense Category Name',
 
     'add' => 'Add Expense Master',
