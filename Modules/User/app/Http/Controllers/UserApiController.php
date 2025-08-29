@@ -94,6 +94,19 @@ class UserApiController extends Controller
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
     }
+    public function userDropdown(Request $request)
+    {
+        try {
+            $user = User::select('id','name')
+                ->orderBy('name', 'asc')
+                ->get();
+            // $supervisor = User::select('id', 'name')->orderBy('id', 'DESC')->get();
+            return response(['status' => true, 'message' => 'User Dropdown', 'all_user' => $user], 200);
+        } catch (Exception $e) {
+            dd($e);
+            return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
+        }
+    }
 
     public function dashboard()
     {

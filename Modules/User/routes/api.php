@@ -9,4 +9,5 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::get('dashboard', [UserApiController::class, 'dashboard']);
     Route::post('supervisor-list', [UserApiController::class, 'supervisorList']);
     Route::post('site-supervisor-list', [UserApiController::class, 'siteSupervisorList']);
+    Route::post('all-user-dropdown', [UserApiController::class, 'userDropdown']);
 });

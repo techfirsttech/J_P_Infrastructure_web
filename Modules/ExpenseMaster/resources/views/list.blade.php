@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', __('expensemaster::message.income_master'))
+@section('title', __('expensemaster::message.expensemaster'))
 @section('content')
     <div class="row">
         <div class="col-12 mb-2">
