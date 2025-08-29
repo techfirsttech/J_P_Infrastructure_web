@@ -28,8 +28,7 @@ return [
     'labour' => 'Labour',
     'type' => 'Type',
     'date' => 'Date',
-
-
-
-
+    'half' => 'Half',
+    'full' => 'Full',
+    'absent' => 'Absent',
 ];
