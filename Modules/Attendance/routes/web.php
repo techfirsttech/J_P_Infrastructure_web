@@ -5,4 +5,8 @@ use Modules\Attendance\Http\Controllers\AttendanceController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('attendances', AttendanceController::class)->names('attendance');
+
+    Route::post('attendance-list', [AttendanceController::class, 'list'])->name('attendance-list');
+
+    Route::get('get-labours', [AttendanceController::class, 'getLaboursByDateContractor'])->name('get-labours');
 });

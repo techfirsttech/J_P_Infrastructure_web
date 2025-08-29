@@ -16,6 +16,7 @@ return [
     'name' => 'Expense Category Name',
 
     'select_site' => 'Select Site',
+    'site' => 'Site',
     'add' => 'Add Contractor',
     'edit' => 'Edit Contractor',
     'contractor_name' => 'Contractor Name',

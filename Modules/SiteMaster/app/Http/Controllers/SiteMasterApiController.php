@@ -259,7 +259,7 @@ class SiteMasterApiController extends Controller
                     $subQuery->select('site_master_id')->from('site_supervisors')->where('user_id', $userId);
                 });
             }
-            $siteDropdown = $query->get();
+            $siteDropdown = $query->orderBy('site_name','asc')->get();
             return response(['status' => true, 'message' => 'Site Dropdown', 'site_dropdown' => $siteDropdown], 200);
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);

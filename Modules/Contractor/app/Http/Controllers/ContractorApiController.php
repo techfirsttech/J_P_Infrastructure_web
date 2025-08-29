@@ -118,7 +118,7 @@ class ContractorApiController extends Controller
     {
         try {
             $contractorQuery = Contractor::select('id', 'contractor_name', 'mobile')
-                ->orderBy('id', 'DESC');
+                ->orderBy('contractor_name','asc');
 
             if (!empty($request->site_id)) {
                 $contractorQuery->where('site_id', $request->site_id);
@@ -133,7 +133,7 @@ class ContractorApiController extends Controller
     public function contractorLabourDropdown(Request $request)
     {
         try {
-            $labour = Labour::select('id', 'labour_name')->where('id', $request->contractor_id)->orderBy('id', 'DESC')->get();
+            $labour = Labour::select('id', 'labour_name')->where('id', $request->contractor_id)->orderBy('labour_name', 'asc')->get();
             return response(['status' => true, 'message' => 'Contractor wise Labour Dropdown', 'contractor_labour_list' => $labour], 200);
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);

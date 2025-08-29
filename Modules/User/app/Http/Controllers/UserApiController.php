@@ -66,7 +66,7 @@ class UserApiController extends Controller
                     ->whereHas('roles', function ($q) {
                         $q->where('name', 'supervisor');
                     })
-                    ->orderBy('id', 'DESC')
+                    ->orderBy('users.name', 'asc')
                     ->get();
             }
             return response(['status' => true, 'message' => 'Supervisor List', 'result' => $supervisor], 200);
@@ -85,7 +85,7 @@ class UserApiController extends Controller
             )
                 ->where('site_supervisors.site_master_id', $request->site_id)
                 ->leftJoin('users', 'site_supervisors.user_id', '=', 'users.id')
-                ->orderBy('site_supervisors.id', 'DESC')
+                ->orderBy('users.name', 'asc')
                 ->get();
             // $supervisor = User::select('id', 'name')->orderBy('id', 'DESC')->get();
             return response(['status' => true, 'message' => 'Supervisor List', 'result' => $supervisor], 200);

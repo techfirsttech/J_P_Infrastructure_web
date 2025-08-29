@@ -18,7 +18,7 @@ class SupplierApiController extends Controller
     public function index()
     {
         try {
-            $supplier = Supplier::select('id', 'supplier_name','supplier_code')->get();
+            $supplier = Supplier::select('id', 'supplier_name','supplier_code')->orderBy('supplier_name','asc')->get();
             return response(['status' => true, 'message' => 'Supplier Dropdown', 'supplier_dropdown' => $supplier], 200);
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);

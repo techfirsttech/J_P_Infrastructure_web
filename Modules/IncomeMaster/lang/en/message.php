@@ -11,9 +11,9 @@ return [
     'raw_material' => 'Raw Material',
 
     //common
-    'expenseCategory' => 'Expense Category',
-    'expense_category' => 'Expense Category',
-    'name' => 'Expense Category Name',
+    'income' => 'Income Master',
+    'incomeMaster' => 'Income Master',
+    'name' => 'Income Name',
 
     'add' => 'Add Income Master',
     'edit' => 'Edit Income Master',
@@ -25,7 +25,6 @@ return [
     'enter_amount' => 'Enter Amount',
     'select_site' => 'Select Site',
     'select_supervisor' => 'Select Supervisor',
-    'incomeMaster' => 'Income Master',
 
 
 

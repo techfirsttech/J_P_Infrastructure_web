@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', __('incomemaster::message.income_master'))
+@section('title', __('incomemaster::message.incomeMaster'))
 @section('content')
     <div class="row">
         <div class="col-12 mb-2">
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="inlineModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="inlineModal" tabindex="-1" aria-labelledby="exampleModalLabel" >
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header bg-transparent">
@@ -46,9 +46,8 @@
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
                                 <input type="hidden" name="id" id="id" value="">
                                 <label for="site_id" class="form-label">{{ __('incomemaster::message.site') }}</label>
-                                <select id="site_id" name="site_id" class="select2 form-select"
-                                    data-placeholder="{{ __('message.common.select') }}">
-                                    <option value=""></option>
+                                <select id="site_id" name="site_id" class="select2 form-select">
+                                    <option value="">{{ __('message.common.select') }}</option>
                                     @if ($siteMaster->count() > 0)
                                         @foreach ($siteMaster as $value)
                                             <option value="{{ $value->id }}">{{ $value->site_name }}
@@ -202,6 +201,7 @@
      $("#inlineModal").on("hidden.bs.modal", function(e) {
           $(this).find('form').trigger('reset');
           $("#id").val("");
+          $('.select2').val('').trigger('change');
           $(".invalid-feedback,.custom-error").html("");
           $(".save").html("Submit");
           $(".save").attr('disabled', false);

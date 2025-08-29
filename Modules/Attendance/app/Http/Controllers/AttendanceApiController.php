@@ -42,6 +42,14 @@ class AttendanceApiController extends Controller
                 $baseQuery->whereIn('attendances.site_id', $assignedSiteIds);
             }
 
+            if ($request->filled('site_id')) {
+                $baseQuery->where('attendances.site_id', $request->site_id);
+            }
+            if ($request->filled('contractor_id')) {
+                $baseQuery->where('attendances.contractor_id', $request->contractor_id);
+            }
+
+
 
             if ($request->filled('start_date') && $request->filled('end_date')) {
                 $start = Carbon::parse($request->start_date)->startOfDay();
@@ -66,6 +74,8 @@ class AttendanceApiController extends Controller
                     'contractors.contractor_name',
                     'attendances.labour_id',
                     'attendances.type',
+                    DB::raw("DATE_FORMAT(attendances.date, '%d-%m-%Y') as date"),
+
                     'labours.labour_name',
                     DB::raw("SUM(CASE WHEN attendances.type = 'Full' THEN 1 ELSE 0 END) as full_days"),
                     DB::raw("SUM(CASE WHEN attendances.type = 'Half' THEN 1 ELSE 0 END) as half_days"),
@@ -78,7 +88,8 @@ class AttendanceApiController extends Controller
                     'contractors.contractor_name',
                     'attendances.labour_id',
                     'attendances.type',
-                    'labours.labour_name'
+                    'labours.labour_name',
+                    'attendances.date',
                 )
                 ->orderBy('site_masters.site_name')
                 ->get();
@@ -92,6 +103,7 @@ class AttendanceApiController extends Controller
                     return [
                         'site_id' => $site->site_id,
                         'site_name' => $site->site_name,
+                        'date' => $site->date,
                         'contractors' => $siteGroup->groupBy('contractor_id')->map(function ($contractorGroup) {
                             $contractor = $contractorGroup->first();
 
@@ -175,7 +187,8 @@ class AttendanceApiController extends Controller
 
         try {
             $yearID = getSelectedYear();
-            $date = now()->toDateString();
+            $date = $request->date;
+            // $date = now()->toDateString();
 
             foreach ($request->labour as $labour) {
                 $dailyWage = Labour::where('id', $labour['labour_id'])->value('daily_wage');
@@ -298,7 +311,7 @@ class AttendanceApiController extends Controller
                 $query->where('labours.contractor_id', $contractorId);
             }
 
-            $labourList = $query->get();
+            $labourList = $query->orderBy('labours.labour_name', 'asc')->get();
             return response(['status' => true, 'message' => 'Labour List', 'labour_list' => $labourList], 200);
         } catch (Exception $e) {
             dd($e);

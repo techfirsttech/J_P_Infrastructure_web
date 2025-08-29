@@ -1,13 +1,9 @@
 @extends('layouts.app')
-@section('title', __('attendance::message.attendance'))
+@section('title', __('expensemaster::message.income_master'))
 @section('content')
     <div class="row">
         <div class="col-12 mb-2">
-            <h5 class="content-header-title float-start mb-0">{{ __('attendance::message.list') }}</h5>
-            {{-- @can('attendance-create')
-                <a href="{{ route('attendance.create') }}" class="btn btn-sm btn-primary float-end new-create"><i
-                        class="fa fa-plus me-50"></i> {{ __('message.common.addNew') }}</a>
-            @endcan --}}
+            <h5 class="content-header-title float-start mb-0">{{ __('expensemaster::message.list') }}</h5>
         </div>
         <div class="col-12">
             <div class="card p-1">
@@ -16,14 +12,13 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>{{ __('attendance::message.supervisor') }}</th>
-                                <th>{{ __('attendance::message.site') }}</th>
-                                <th>{{ __('attendance::message.contractor') }}</th>
-                                {{-- <th>{{ __('attendance::message.labour') }}</th>
-                                <th>{{ __('attendance::message.type') }}</th>
-                                <th>{{ __('attendance::message.date') }}</th>--}}
-                                <th>{{ __('message.common.action') }}</th>
-
+                                <th>{{ __('expensemaster::message.expenseCategoryName') }}</th>
+                                <th>{{ __('expensemaster::message.site') }}</th>
+                                <th>{{ __('expensemaster::message.supervisor') }}</th>
+                                <th>{{ __('expensemaster::message.amount') }}</th>
+                                <th>{{ __('expensemaster::message.remark') }}</th>
+                                <th>Image</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -38,7 +33,7 @@
 @section('pagescript')
     <script type="application/javascript">
      'use strict';
-     const URL = "{{route('attendance.index')}}";
+     const URL = "{{route('expensemaster.index')}}";
      var table = '';
      $(function() {
           table = $('#table').DataTable({
@@ -79,31 +74,34 @@
                          }
                     },
                     {
-                         data: 'supervisors',
-                         name: 'supervisors'
+                         data: 'expense_category_name',
+                         name: 'expense_categories.expense_category_name'
                     },
 
                     {
                          data: 'site_name',
-                         name: 'site_name'
+                         name: 'site_masters.site_name'
                     },
                     {
-                         data: 'contractor_name',
-                         name: 'contractor_name'
+                         data: 'supervisor_name',
+                         name: 'users.name'
                     },
-                    // {
-                    //      data: 'labour_name',
-                    //      name: 'labour_name'
-                    // },
-                    // {
-                    //      data: 'type',
-                    //      name: 'type'
-                    // },
                     {
-                         data: 'action',
-                         name: 'action'
-
-                    }
+                         data: 'amount',
+                         name: 'amount'
+                    },
+                    {
+                         data: 'remark',
+                         name: 'remark'
+                    },
+                    {
+                         data: 'document',
+                         name: 'document'
+                    },
+                      {
+                         data: 'status',
+                         name: 'status'
+                    },
 
                ],
                initComplete: function(settings, json) {
@@ -132,41 +130,35 @@
           });
      });
 
-    // $(document).on('click', '.status', function() {
-    //       let status = $(this).data('value');
-    //       let id = $(this).data('id');
-    //       var url = "{{route('expense-status-change')}}";
-    //       $.ajax({
-    //            type: "POST",
-    //            url: url,
-    //            dataType: 'json',
-    //            data: {
-    //                 "_token": "{{ csrf_token() }}",
-    //                 "id": id,
-    //                 "status": status,
-    //            },
-    //            success: function(response) {
-    //                 if (response.status == true) {
-    //                      table.ajax.reload(null, false);
-    //                      toastr.success("Status Updated Successfully", "success'");
-    //                 } else {
-    //                      toastr.error("Something Went Wrong. Please Try Again.'", "error");
-    //                 }
-    //            },
-    //            error: function(error) {
-    //                 toastr.error("Something Went Wrong. Please Try Again.'", "error");
-    //                 $(document.body).css('pointer-events', '');
-    //            }
-    //       });
-    // });
+    $(document).on('click', '.status', function() {
+          let status = $(this).data('value');
+          let id = $(this).data('id');
+          var url = "{{route('expense-status-change')}}";
+          $.ajax({
+               type: "POST",
+               url: url,
+               dataType: 'json',
+               data: {
+                    "_token": "{{ csrf_token() }}",
+                    "id": id,
+                    "status": status,
+               },
+               success: function(response) {
+                    if (response.status == true) {
+                         table.ajax.reload(null, false);
+                         toastr.success("Status Updated Successfully", "success'");
+                    } else {
+                         toastr.error("Something Went Wrong. Please Try Again.'", "error");
+                    }
+               },
+               error: function(error) {
+                    toastr.error("Something Went Wrong. Please Try Again.'", "error");
+                    $(document.body).css('pointer-events', '');
+               }
+          });
+    });
 
 </script>
     <script src="{{ asset('assets/custom/save.js') }}"></script>
     <script src="{{ asset('assets/custom/delete.js') }}"></script>
 @endsection
-
-{{-- <x-attendance::layouts.master>
-    <h1>Hello World</h1>
-
-    <p>Module: {!! config('attendance.name') !!}</p>
-</x-attendance::layouts.master> --}}
