@@ -11,8 +11,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Modules\RawMaterialCategory\Models\RawMaterialCategory;
 use Modules\RawMaterialMaster\Models\RawMaterialMaster;
+use Modules\RawMaterialMaster\Models\RawMaterialStock;
 use Modules\RawMaterialMaster\Models\RawMaterialStockTransaction;
 use Modules\SiteMaster\Models\SiteMaster;
+use Modules\StockTransfer\Models\StockTransfer;
 use Modules\Unit\Models\Unit;
 use Modules\User\Models\User;
 use Yajra\DataTables\Facades\DataTables;
@@ -280,12 +282,86 @@ class RawMaterialMasterController extends Controller
                 ->escapeColumns([])
                 ->make(true);
         } else {
-            $materials = RawMaterialMaster::select('id', 'material_name')->get();
-            $sites = SiteMaster::select('id', 'site_name')->get();
-            $supervisors = User::role('Supervisor')->select('id', 'name')->get();
+            $materials = RawMaterialMaster::select('id', 'material_name')->orderBy('material_name','asc')->get();
+            $sites = SiteMaster::select('id', 'site_name')->orderBy('site_name','asc')->get();
+            $supervisors = User::role('Supervisor')->select('id', 'name')->orderBy('name','asc')->get();
 
             return view('rawmaterialmaster::transaction', compact('materials', 'sites', 'supervisors'));
             // return view('rawmaterialmaster::transaction');
+        }
+    }
+
+
+    public function stockTransferList(Request $request)
+    {
+        $query = StockTransfer::select(
+            'stock_transfers.id',
+            'stock_transfers.material_id',
+            'stock_transfers.material_stock_id',
+            'stock_transfers.from_site_id',
+            'stock_transfers.supervisor_id',
+            'stock_transfers.to_site_id',
+            'stock_transfers.quantity',
+            'stock_transfers.unit_id',
+            'stock_transfers.remark',
+
+            'raw_material_masters.material_name',
+            'from.site_name as from_site_name',
+            'to.site_name as to_site_name',
+            'users.name as supervisor_name',
+            'units.name as unit_name'
+        )
+            ->leftJoin('raw_material_masters', 'stock_transfers.material_id', '=', 'raw_material_masters.id')
+            ->leftJoin('site_masters as from', 'from.id', '=', 'stock_transfers.from_site_id')
+            ->leftJoin('site_masters as to', 'to.id', '=', 'stock_transfers.to_site_id')
+            ->leftJoin('users', 'users.id', '=', 'stock_transfers.supervisor_id')
+            ->leftJoin('units', 'units.id', '=', 'stock_transfers.unit_id');
+
+        $user = Auth::user();
+        $role = $user->roles->first();
+
+        if ($role && $role->name === 'Supervisor') {
+            $query->where('stock_transfers.created_by', $user->id);
+        }
+
+        if ($request->filled('from_site_id')) {
+            $query->where('stock_transfers.from_site_id', $request->from_site_id);
+        }
+
+        if ($request->filled('to_site_id')) {
+            $query->where('stock_transfers.to_site_id', $request->to_site_id);
+        }
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $start = Carbon::parse($request->start_date)->startOfDay();
+            $end = Carbon::parse($request->end_date)->endOfDay();
+            $query->whereBetween('stock_transfers.created_at', [$start, $end]);
+        } elseif ($request->filled('start_date')) {
+            $start = Carbon::parse($request->start_date)->startOfDay();
+            $query->where('stock_transfers.created_at', '>=', $start);
+        } elseif ($request->filled('end_date')) {
+            $end = Carbon::parse($request->end_date)->endOfDay();
+            $query->where('stock_transfers.created_at', '<=', $end);
+        }
+
+        $data = $query->orderBy('stock_transfers.id', 'DESC');
+
+        if (request()->ajax()) {
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $show = '';
+                    $edit = '';
+                    $delete = '';
+                    $assign = '';;
+                    $showURL = "";
+                    $editURL = "";
+                    return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign'));
+                })
+                ->escapeColumns([])
+                ->make(true);
+        } else {
+            return view('rawmaterialmaster::stock-transfer-list');
         }
     }
 }

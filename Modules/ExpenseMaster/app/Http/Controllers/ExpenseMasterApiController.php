@@ -408,9 +408,10 @@ class ExpenseMasterApiController extends Controller
     public function expenseCategoryDropdown()
     {
         try {
-            $expenseCategoryDropdown = ExpenseCategory::select('id', 'expense_category_name')->get();
+            $expenseCategoryDropdown = ExpenseCategory::select('id', 'expense_category_name')->orderBy('expense_category_name','asc')->get();
             return response(['status' => true, 'message' => 'Expense Category Dropdown', 'expense_category_dropdown' => $expenseCategoryDropdown], 200);
         } catch (Exception $e) {
+            dd($e);
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
     }

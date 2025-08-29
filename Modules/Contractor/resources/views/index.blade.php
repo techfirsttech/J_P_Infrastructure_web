@@ -147,17 +147,6 @@
                          data: 'mobile',
                          name: 'mobile'
                     },
-                    //  {
-                    //      data: function(row) {
-                    //           return row.expense_category_status ? row.expense_category_status.expense_category_status_name : '';
-                    //      },
-                    //      name: 'expense_category_status_id',
-                    //      className: 'text-nowrap'
-                    // },
-                    // {
-                    //      data: 'expense_category_status_id',
-                    //      name: 'expense_category_status_id'
-                    // },
                     {
                          data: 'action',
                          name: 'action',
@@ -256,40 +245,9 @@
                $(element).closest('.custom-input-group').append(error);
           }
      });
-
-        // $(document).on('click', '.change-status', function() {
-        //     let status = $(this).data('status');
-        //     let id = $(this).data('id');
-        //     $.ajax({
-        //         type: "POST",
-        //         url: "{{route('expense-category-status-change')}}",
-        //         dataType: 'json',
-        //         data: {
-        //             "_token": "{{ csrf_token() }}",
-        //             "id": id,
-        //             "status": status,
-        //         },
-        //         success: function(response) {
-        //             if (response.status_code == 200) {
-        //                 table.ajax.reload(null, false);
-        //                 toastr.success(response.message, "{{ __('message.common.success') }}");
-        //             } else {
-        //                 toastr.error(response.message, "{{ __('message.common.error') }}");
-        //             }
-        //         },
-        //         error: function(error) {
-        //             toastr.error("{{ __('message.common.somethingWentWrong.PleaseTryAgain.') }}", "{{ __('message.common.error') }}");
-        //             $(document.body).css('pointer-events', '');
-        //         }
-        //     });
-        // });
 </script>
     <script src="{{ asset('assets/custom/save.js') }}"></script>
     <script src="{{ asset('assets/custom/delete.js') }}"></script>
 @endsection
 
-{{-- <x-contractor::layouts.master>
-    <h1>Hello World</h1>
 
-    <p>Module: {!! config('contractor.name') !!}</p>
-</x-contractor::layouts.master> --}}

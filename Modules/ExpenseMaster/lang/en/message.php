@@ -30,6 +30,7 @@ return [
     'ledger' => 'Ledger',
     'credit' => 'Credit',
     'debit' => 'Debit',
+    'document' => 'Document',
 
 
 

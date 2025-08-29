@@ -16,25 +16,22 @@ use Yajra\DataTables\Facades\DataTables;
 class AttendanceController extends Controller
 {
 
+
     public function index(Request $request)
     {
         $query = Attendance::select(
-            'attendances.id',
-            'attendances.supervisor_id',
+            DB::raw('MIN(attendances.id) as id'),
             'attendances.site_id',
-            'attendances.contractor_id',
-            'attendances.labour_id',
-            'attendances.type',
-            'attendances.date',
-            'users.name as supervisor_name',
             'site_masters.site_name',
+            'attendances.contractor_id',
             'contractors.contractor_name',
-            'labours.labour_name',
+            DB::raw('GROUP_CONCAT(DISTINCT users.name SEPARATOR ", ") as supervisors'),
+            DB::raw('COUNT(attendances.id) as total_records')
         )
             ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
             ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
-            ->leftJoin('labours', 'labours.id', '=', 'attendances.labour_id')
-            ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id');
+            ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id')
+            ->groupBy('attendances.site_id', 'site_masters.site_name', 'attendances.contractor_id', 'contractors.contractor_name');
 
         $user = Auth::user();
         $role = $user->roles->first();
@@ -52,28 +49,18 @@ class AttendanceController extends Controller
         if ($request->filled('contractor_id')) {
             $query->where('attendances.contractor_id', $request->contractor_id);
         }
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $startDate = Carbon::parse($request->start_date)->startOfDay();
-            $endDate = Carbon::parse($request->end_date)->endOfDay();
-            $query->whereBetween('attendances.created_at', [$startDate, $endDate]);
-        } elseif ($request->filled('start_date')) {
-            $startDate = Carbon::parse($request->start_date)->startOfDay();
-            $query->where('attendances.created_at', '>=', $startDate);
-        } elseif ($request->filled('end_date')) {
-            $endDate = Carbon::parse($request->end_date)->endOfDay();
-            $query->where('attendances.created_at', '<=', $endDate);
-        }
 
         if (request()->ajax()) {
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
-                    $show = '';
+                    $show = 'attendance-list';
                     $edit = '';
                     $delete = '';
-                    $assign = ''; //'assign-user-list';
-                    $showURL = "";
-                    $editURL = "";
+                    $assign = '';
+                    $showURL = route('attendance.show',  $row->id);
+                    // $showURL = route('attendance.show', $row->contractor_id);
+                    $editURL = route('attendance.edit', $row->id);
                     return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign'));
                 })
                 ->escapeColumns([])
@@ -82,6 +69,38 @@ class AttendanceController extends Controller
             return view('attendance::index');
         }
     }
+
+
+    public function getLaboursByDateContractor(Request $request)
+    {
+        $date = $request->date;
+        $contractor_id = $request->contractor_id;
+
+        if (!$date || !$contractor_id) {
+            return response()->json(['status' => false, 'message' => 'Date and Contractor required']);
+        }
+
+        // Attendance માં already present labor IDs fetch
+        $attendedLabourIds = Attendance::where('date', $date)
+            ->where('contractor_id', $contractor_id)
+            ->pluck('labour_id')
+            ->toArray();
+
+        // Contractor ના labor fetch
+        $labours = Labour::where('contractor_id', $contractor_id)
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'labours' => $labours,
+            'attendedLabourIds' => $attendedLabourIds
+        ]);
+    }
+
+
+
+
+    // =====================
 
     // public function index(Request $request)
     // {
@@ -274,14 +293,94 @@ class AttendanceController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($id, Request $request)
     {
-        return view('attendance::show');
+        // $contractorId = Attendance::where('attendances.id',$id)->pluck('contractor_id');
+        $contractorId = Attendance::where('attendances.id', $id)->value('contractor_id');
+
+        $query = Attendance::select(
+            // DB::raw('MIN(attendances.id) as id'),
+
+            'attendances.id',
+            'attendances.labour_id',
+            'attendances.site_id',
+            'site_masters.site_name',
+            'attendances.contractor_id',
+            'contractors.contractor_name',
+            'users.name as supervisors',
+            'labours.labour_name',
+            'attendances.type',
+            // 'attendances.date',
+            DB::raw("DATE_FORMAT(attendances.date, '%d-%m-%Y') as date"),
+
+            // DB::raw('GROUP_CONCAT(DISTINCT users.name SEPARATOR ", ") as supervisors'),
+        )
+            ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
+            ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
+            ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id')
+            ->leftJoin('labours', 'labours.id', '=', 'attendances.labour_id')
+            // ->groupBy('attendances.site_id', 'attendances.contractor_id', 'site_masters.site_name', 'contractors.contractor_name', 'attendances.id')
+            ->where('attendances.contractor_id', $contractorId);
+        $user = Auth::user();
+        $role = $user->roles->first();
+
+        // if ($role && $role->name === 'Supervisor') {
+        //     $query->where('attendances.supervisor_id', $user->id);
+        // }
+
+        // if ($request->filled('supervisor_id')) {
+        //     $query->where('attendances.supervisor_id', $request->supervisor_id);
+        // }
+        // if ($request->filled('site_id')) {
+        //     $query->where('attendances.site_id', $request->site_id);
+        // }
+        // if ($request->filled('contractor_id')) {
+        //     $query->where('attendances.contractor_id', $request->contractor_id);
+        // }
+
+        if (request()->ajax()) {
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $show = 'attendance-list';
+                    $edit = '';
+                    // $edit = 'attendance-edit';
+                    $delete = '';
+                    $assign = '';
+                    $showURL = '';
+                    // $showURL = route('attendance.edit', $row->id);
+                    $editURL = '';
+                    return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign'));
+                })
+                ->escapeColumns([])
+                ->make(true);
+        } else {
+            $showURL = route('attendance.show', $id);
+            return view('attendance::show', compact('showURL'));
+        }
+        // return view('attendance::show');
     }
 
     public function edit($id)
     {
-        return view('attendance::edit');
+        $attendance = Attendance::where('attendances.id', $id)
+            ->select(
+
+                'attendances.id',
+                'attendances.site_id',
+                'attendances.supervisor_id',
+                'attendances.labour_id',
+                'attendances.type',
+                'attendances.amount',
+                'site_masters.site_name',
+                'contractors.contractor_name',
+
+            )
+            ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
+            ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
+            ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id')
+            ->first();
+        return view('attendance::edit', compact('attendance'));
     }
 
     public function update(Request $request, $id) {}

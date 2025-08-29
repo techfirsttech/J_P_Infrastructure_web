@@ -68,6 +68,9 @@ class SiteMasterController extends Controller
                     $editURL = route('sitemaster.edit', $row->id);
                     return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign'));
                 })
+                ->editColumn('site_name', function ($row) {
+                    return '<a href="javascript:void(0);" class="view" data-id="' . $row->id . '">' . $row->site_name . '</a>';
+                })
                 ->escapeColumns([])
                 ->make(true);
         } else {
@@ -166,7 +169,38 @@ class SiteMasterController extends Controller
      */
     public function show($id)
     {
-        return view('sitemaster::show');
+        try {
+            $query = SiteMaster::with(['supervisors:id,name'])
+                ->select(
+                    'site_masters.id',
+                    'site_masters.site_name',
+                    'site_masters.address',
+                    'site_masters.pincode',
+                    'site_masters.country_id',
+                    'site_masters.state_id',
+                    'site_masters.city_id',
+                    'site_masters.site_master_status_id',
+                    'countries.name as country_name',
+                    'cities.name as city_name',
+                    'states.name as state_name',
+                    'site_master_statuses.status_name'
+                )
+                ->leftJoin('countries', 'countries.id', '=', 'site_masters.country_id')
+                ->leftJoin('states', 'states.id', '=', 'site_masters.state_id')
+                ->leftJoin('cities', 'cities.id', '=', 'site_masters.city_id')
+                ->leftJoin('site_master_statuses', 'site_master_statuses.id', '=', 'site_masters.site_master_status_id')
+                ->where('site_masters.id', $id)
+                ->first();
+            if (!is_null($query)) {
+                $data['html'] = view('sitemaster::model', compact('query'))->render();
+                return response()->json($data);
+            } else {
+                return response()->json(['status_code' => 403, 'message' => 'Site not found.']);
+            }
+        } catch (\Exception $e) {
+            dd($e);
+            return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
+        }
     }
 
     /**
@@ -175,14 +209,14 @@ class SiteMasterController extends Controller
     public function edit($id)
     {
         $site = SiteMaster::findOrFail($id);
-        $siteSupervisor = SiteSupervisor::where('site_master_id',$site->id)->get();
+        $siteSupervisor = SiteSupervisor::where('site_master_id', $site->id)->get();
+
         $supervisor = User::role('Supervisor')->get();
+        $supervisor_ids = $siteSupervisor->pluck('user_id')->toArray();
         $state = State::all();
         $cities = City::where('state_id', $site->state_id)->get(); // Load based on selected state
 
-        return view('sitemaster::edit', compact('site', 'supervisor', 'state', 'cities','siteSupervisor'));
-        // $siteMaster = SiteMaster::where('id', $id)->first();
-        // return view('sitemaster::edit', compact('siteMaster'));
+        return view('sitemaster::edit', compact('site', 'supervisor', 'state', 'cities', 'siteSupervisor', 'supervisor_ids'));
     }
     /**
      * Update the specified resource in storage.

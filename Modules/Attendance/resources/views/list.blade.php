@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', __('attendance::message.attendance'))
+@section('title', __('attendance::message.income_master'))
 @section('content')
     <div class="row">
         <div class="col-12 mb-2">
@@ -19,11 +19,9 @@
                                 <th>{{ __('attendance::message.supervisor') }}</th>
                                 <th>{{ __('attendance::message.site') }}</th>
                                 <th>{{ __('attendance::message.contractor') }}</th>
-                                {{-- <th>{{ __('attendance::message.labour') }}</th>
+                                <th>{{ __('attendance::message.labour') }}</th>
                                 <th>{{ __('attendance::message.type') }}</th>
-                                <th>{{ __('attendance::message.date') }}</th>--}}
-                                <th>{{ __('message.common.action') }}</th>
-
+                                <th>{{ __('attendance::message.date') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -58,7 +56,7 @@
                     [1, 'asc']
                ],
                columns: [{
-                         data: 'id',
+                         data: 'site_id',
                          render: function(data, type, row, meta) {
                               var rowNumber = meta.row + meta.settings._iDisplayStart + 1;
                               var isResponsive = meta.settings.responsive && meta.settings.responsive.details;
@@ -79,8 +77,8 @@
                          }
                     },
                     {
-                         data: 'supervisors',
-                         name: 'supervisors'
+                         data: 'supervisor_name',
+                         name: 'supervisor_name'
                     },
 
                     {
@@ -91,17 +89,17 @@
                          data: 'contractor_name',
                          name: 'contractor_name'
                     },
-                    // {
-                    //      data: 'labour_name',
-                    //      name: 'labour_name'
-                    // },
-                    // {
-                    //      data: 'type',
-                    //      name: 'type'
-                    // },
                     {
-                         data: 'action',
-                         name: 'action'
+                         data: 'labour_name',
+                         name: 'labour_name'
+                    },
+                    {
+                         data: 'type',
+                         name: 'type'
+                    },
+                    {
+                         data: 'date',
+                         name: 'date'
 
                     }
 
@@ -132,34 +130,27 @@
           });
      });
 
-    // $(document).on('click', '.status', function() {
-    //       let status = $(this).data('value');
-    //       let id = $(this).data('id');
-    //       var url = "{{route('expense-status-change')}}";
-    //       $.ajax({
-    //            type: "POST",
-    //            url: url,
-    //            dataType: 'json',
-    //            data: {
-    //                 "_token": "{{ csrf_token() }}",
+    // $(document).on('click', '.list', function(e) {
+    //     e.preventDefault();
+    //     var id = $(this).attr('data-id');
+    //     if (id != '') {
+    //         var route = "{{route('attendance-list', ':id')}}".replace(':id', id);
+    //         $.ajax({
+    //             type: "get",
+    //             url: route,
+    //             dataType: 'json',
+    //             data: {
     //                 "id": id,
-    //                 "status": status,
-    //            },
-    //            success: function(response) {
-    //                 if (response.status == true) {
-    //                      table.ajax.reload(null, false);
-    //                      toastr.success("Status Updated Successfully", "success'");
-    //                 } else {
-    //                      toastr.error("Something Went Wrong. Please Try Again.'", "error");
-    //                 }
-    //            },
-    //            error: function(error) {
-    //                 toastr.error("Something Went Wrong. Please Try Again.'", "error");
-    //                 $(document.body).css('pointer-events', '');
-    //            }
-    //       });
+    //                 "_token": "{{ csrf_token() }}",
+    //             },
+    //             success: function(response) {
+    //                 $("#exampleModal").modal("show");
+    //                 $("#modal_content").html('');
+    //                 $("#modal_content").html(response.html);
+    //             }
+    //         });
+    //     }
     // });
-
 </script>
     <script src="{{ asset('assets/custom/save.js') }}"></script>
     <script src="{{ asset('assets/custom/delete.js') }}"></script>

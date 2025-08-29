@@ -10,8 +10,8 @@
 
     <div class="row mb-3">
         <div class="col-md-3 form-group custom-input-group">
-            <label for="from_site_id" class="form-label">From Site</label>
-            <select id="from_site_id" class="select2 form-select">
+            <label for="site_id" class="form-label">Site</label>
+            <select id="site_id" class="select2 form-select">
                 <option value="">All Sites</option>
                 @foreach ($sites as $site)
                     <option value="{{ $site->id }}">{{ $site->site_name }}</option>
@@ -19,24 +19,14 @@
             </select>
         </div>
         <div class="col-md-3 form-group custom-input-group">
-            <label for="to_site_id" class="form-label">To Site</label>
-            <select id="to_site_id" class="select2 form-select">
+            <label for="supervisor_id" class="form-label">Supervisor</label>
+            <select id="supervisor_id" class="select2 form-select">
                 <option value="">All Sites</option>
                 @foreach ($sites as $site)
                     <option value="{{ $site->id }}">{{ $site->site_name }}</option>
                 @endforeach
             </select>
         </div>
-
-        {{-- <div class="col-md-3 form-group custom-input-group mt-2">
-            <label for="filter_start_date" class="form-label">Start Date</label>
-            <input type="text" class="form-control flatpickr-date" id="filter_start_date" placeholder="Start Date">
-        </div>
-
-        <div class="col-md-3 form-group custom-input-group mt-2">
-            <label for="filter_end_date" class="form-label">End Date</label>
-            <input type="text" class="form-control flatpickr-date" id="filter_end_date" placeholder="End Date">
-        </div> --}}
 
         <div class="col-md-3 text-start pt-4 mt-2">
             <button class="btn btn-primary" id="filter_button"><i class="fa fa-search"></i></button>
@@ -46,7 +36,7 @@
 
     <div class="row">
         <div class="col-12 mb-2">
-            <h5 class="content-header-title float-start mb-0"> Stock Transfer</h5>
+            <h5 class="content-header-title float-start mb-0">Material Stock </h5>
             {{-- @can('site-master-create')
                 <a href="{{ route('stocktransfer.create') }}" class="btn btn-sm btn-primary float-end new-create"><i
                         class="fa fa-plus me-50"></i> {{ __('message.common.addNew') }}</a>
@@ -59,13 +49,10 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>From Site</th>
-                                <th>To Site</th>
+                                {{-- <th>Site</th>
+                                <th>Supervisor</th> --}}
                                 <th>Material</th>
                                 <th>Quantity</th>
-                                {{-- <th>{{ __('stocktransfer::message.quantity') }}</th>
-                                <th>{{ __('stocktransfer::message.tax') }}</th>
-                                <th>{{ __('message.common.action') }}</th> --}}
                             </tr>
                         </thead>
                         <tbody>
@@ -85,7 +72,7 @@
     @endif
 
         'use strict';
-    const URL = "{{route('stocktransfer.index')}}";
+    const URL = "{{route('stock')}}";
 
     var table = '';
     var assignId = '';
@@ -94,8 +81,8 @@
            ajax: {
                 url: URL,
                 data: function(d) {
-                    d.from_site_id = $('#from_site_id').val();
-                    d.to_site_id = $('#to_site_id').val();
+                    d.site_id = $('#site_id').val();
+                    d.supervisor_id = $('#supervisor_id').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
                 }
@@ -136,12 +123,12 @@
                     }
                 },
                 {
-                    data: 'from_site_name',
-                    name: 'from_site_name'
+                    data: 'site_name',
+                    name: 'site_name'
                 },
                 {
-                    data: 'to_site_name',
-                    name: 'to_site_name'
+                    data: 'supervisor_name',
+                    name: 'supervisor_name'
                 },
                 {
                     data: 'material_name',
@@ -151,20 +138,6 @@
                     data: 'quantity',
                     name: 'quantity'
                 }
-                // {
-                //     data: 'alert_quantity',
-                //     name: 'alert_quantity'
-                // },
-                // {
-                //     data: 'tax',
-                //     name: 'tax'
-                // },
-                // {
-                //     data: 'action',
-                //     name: 'action',
-                //     orderable: false,
-                //     sortable: false
-                // },
             ],
             initComplete: function(settings, json) {
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -183,8 +156,8 @@
 
     // Reset Button
     $('#reset_button').click(function () {
-        $('#from_site_id').val('').trigger('change');
-        $('#to_site_id').val('').trigger('change');
+        $('#site_id').val('').trigger('change');
+        $('#supervisor_id').val('').trigger('change');
         // $('#filter_supervisor_id').val('').trigger('change');
         // $('#filter_type').val('').trigger('change');
         // $('#filter_start_date').val('');

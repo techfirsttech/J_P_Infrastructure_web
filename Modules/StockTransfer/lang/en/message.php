@@ -20,7 +20,7 @@ return [
     'add' => 'Add Raw Material Master',
     'edit' => 'Edit Raw Material Master',
     'material_category_name' => 'Raw Material Name',
-    'list' => 'Raw Material Master List',
+    'list' => 'Stock Transfer',
     'enter_material_category_name' => 'Enter Raw Material Name',
     'enter_material_category_name' => 'Enter Raw Material Name',
     'enter_unique_material_category_name' => 'Enter unique raw material name',
@@ -34,7 +34,8 @@ return [
     'enter_material_name' => 'Enter Material Name',
     'transaction' => 'In/Out Transaction',
 
-    'stock'=> 'Stock',
+
+    'stocktransfer' => 'Stock Transfer',
 
 
 

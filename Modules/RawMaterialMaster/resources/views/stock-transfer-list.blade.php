@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', __('sitemaster::message.list'))
+@section('title', __('rawmaterialmaster::message.list'))
 @section('content')
     <style>
         .select2-search__field {
@@ -9,9 +9,9 @@
     </style>
     <div class="row">
         <div class="col-12 mb-2">
-            <h5 class="content-header-title float-start mb-0"> {{ __('sitemaster::message.list') }}</h5>
+            <h5 class="content-header-title float-start mb-0"> {{ __('rawmaterialmaster::message.list') }}</h5>
             @can('site-master-create')
-                <a href="{{ route('sitemaster.create') }}" class="btn btn-sm btn-primary float-end new-create"><i
+                <a href="{{ route('rawmaterialmaster.create') }}" class="btn btn-sm btn-primary float-end new-create"><i
                         class="fa fa-plus me-50"></i> {{ __('message.common.addNew') }}</a>
             @endcan
         </div>
@@ -22,12 +22,12 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>{{ __('sitemaster::message.site_name') }}</th>
-                                <th>{{ __('sitemaster::message.state') }}</th>
-                                <th>{{ __('sitemaster::message.city') }}</th>
-                                <th>{{ __('sitemaster::message.address') }}</th>
-                                <th>{{ __('sitemaster::message.pincode') }}</th>
-                                {{-- <th>{{ __('sitemaster::message.status') }}</th> --}}
+                                <th>{{ __('rawmaterialmaster::message.material_category') }}</th>
+                                <th>{{ __('rawmaterialmaster::message.material_name') }}</th>
+                                <th>{{ __('rawmaterialmaster::message.material_code') }}</th>
+                                <th>{{ __('rawmaterialmaster::message.unit') }}</th>
+                                <th>{{ __('rawmaterialmaster::message.alert_quantity') }}</th>
+                                <th>{{ __('rawmaterialmaster::message.tax') }}</th>
                                 <th>{{ __('message.common.action') }}</th>
                             </tr>
                         </thead>
@@ -36,13 +36,6 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="detailModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered align-items-start modal-md">
-            <div class="modal-content" id="modal_content">
             </div>
         </div>
     </div>
@@ -55,7 +48,7 @@
     @endif
 
         'use strict';
-    const URL = "{{route('sitemaster.index')}}";
+    const URL = "{{route('rawmaterialmaster.index')}}";
 
     var table = '';
     var assignId = '';
@@ -74,7 +67,7 @@
                 [15, 30, 50, 100, "All"]
             ],
             order: [
-                [1, 'asc']
+                [0, 'asc']
             ],
             columns: [{
                     data: 'id',
@@ -98,24 +91,28 @@
                     }
                 },
                 {
-                    data: 'site_name',
-                    name: 'site_name'
+                    data: 'material_category_name',
+                    name: 'material_category_name'
                 },
                 {
-                    data: 'state_name',
-                    name: 'site_master_statuses.status_name'
+                    data: 'material_name',
+                    name: 'material_name'
                 },
                 {
-                    data: 'city_name',
-                    name: 'cities.name'
+                    data: 'material_code',
+                    name: 'material_code'
                 },
                 {
-                    data: 'address',
-                    name: 'address'
+                    data: 'unit_name',
+                    name: 'unit_name'
                 },
                 {
-                    data: 'pincode',
-                    name: 'pincode'
+                    data: 'alert_quantity',
+                    name: 'alert_quantity'
+                },
+                {
+                    data: 'tax',
+                    name: 'tax'
                 },
                 {
                     data: 'action',
@@ -132,28 +129,6 @@
             },
 
         });
-    });
-
-    $(document).on('click', '.view', function(e) {
-        e.preventDefault();
-        var id = $(this).attr('data-id');
-        if (id != '') {
-            var route = "{{route('sitemaster.show', ':id')}}".replace(':id', id);
-            $.ajax({
-                type: "get",
-                url: route,
-                dataType: 'json',
-                data: {
-                    "id": id,
-                    "_token": "{{ csrf_token() }}",
-                },
-                success: function(response) {
-                    $("#exampleModal").modal("show");
-                    $("#modal_content").html('');
-                    $("#modal_content").html(response.html);
-                }
-            });
-        }
     });
 
 

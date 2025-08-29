@@ -616,7 +616,7 @@ class RawMaterialMasterInOutApiController extends Controller
     {
 
         try {
-            $rawMaterialMaster = RawMaterialMaster::select('id', 'material_category_id', 'material_name', 'material_code')->get();
+            $rawMaterialMaster = RawMaterialMaster::select('id', 'material_category_id', 'material_name', 'material_code')->orderBy('material_name','asc')->get();
             return response(['status' => true, 'message' => 'Raw Material Dropdown', 'raw_material_dropdown' => $rawMaterialMaster], 200);
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
@@ -626,7 +626,7 @@ class RawMaterialMasterInOutApiController extends Controller
     {
 
         try {
-            $unit = Unit::select('id', 'name')->get();
+            $unit = Unit::select('id', 'name')->orderBy('name','asc')->get();
             return response(['status' => true, 'message' => 'Unit Dropdown', 'unit_dropdown' => $unit], 200);
         } catch (Exception $e) {
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);

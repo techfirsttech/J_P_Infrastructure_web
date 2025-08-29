@@ -3,7 +3,6 @@
 @section('content')
     <div class="row mb-3">
 
-
         <div class="col-md-3 form-group custom-input-group">
             <label for="filter_site_id" class="form-label">Site <span class="text-danger">*</span></label>
             <select id="filter_site_id" name="filter_site_id" class="select2 form-select"
@@ -15,8 +14,6 @@
             </select>
             <span class="invalid-feedback d-block" id="error_filter_site_id" role="alert"></span>
         </div>
-
-
         <div class="col-md-3 form-group custom-input-group">
             <label for="filter_supervisor_id" class="form-label">Supervisor<span class="text-danger">*</span></label>
             <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select"
@@ -29,13 +26,6 @@
             <span class="invalid-feedback d-block" id="error_filter_supervisor_id" role="alert"></span>
         </div>
 
-
-
-        {{-- <div class="col-md-3">
-            <label>Start Date</label>
-            <input type="date" id="filter_start_date" class="form-control">
-        </div> --}}
-
         <div class="col-md-2 form-group custom-input-group">
             <label class="form-label" for="filter_start_date">Start Date</label>
             <input type="text" class="form-control flatpickr-date" name="filter_start_date" id="filter_start_date"
@@ -46,28 +36,17 @@
             <input type="text" class="form-control flatpickr-date" name="filter_end_date" id="filter_end_date"
                 placeholder="End Date" value="">
         </div>
-
-        {{-- <div class="col-md-3">
-            <label></label>
-            <input type="date" id="filter_end_date" class="form-control">
-        </div> --}}
-
-
         <div class="col-md-2 text-end pt-5">
-            <button class="btn btn-primary" id="filter_button"><i class="fa fa-search"></i></button>
-            <button class="btn btn-secondary" id="reset_button"><i class="fa fa-refresh"></i></button>
+             <a class="btn btn-warning px-3 ledger-pdf" href="javascript:void(0);">
+                    <i class="fa fa-file-pdf"></i>
+                </a>
+            {{-- <button class="btn btn-warning px-3 pdf-view" id="pdf_button"><i class="fa fa-file-pdf"></i></button> --}}
+            <button class="btn btn-primary px-3" id="filter_button"><i class="fa fa-search"></i></button>
+            <button class="btn btn-secondary px-3" id="reset_button"><i class="fa fa-refresh"></i></button>
         </div>
-
-
-
-
     </div>
 
-
-
     <div class="row">
-
-
         <div class="col-12 mb-2">
             <h5 class="content-header-title float-start mb-0">{{ __('expensemaster::message.ledger') }}</h5>
         </div>
@@ -283,6 +262,49 @@
           });
     });
 
+    $(document).on('click', '.ledger-pdf', function() {
+        let pdfId = $(this).attr('data-id');
+        let obj = $(this);
+        if (pdfId != '') {
+            $.ajax({
+                type: "POST",
+                url: "{{route('ledger-pdf')}}",
+                data: {
+                    "id": pdfId,
+                    "_token": "{{ csrf_token() }}"
+                },
+                dataType: 'json',
+                cache: false,
+                beforeSend: function() {
+                    $("#error_name").html('');
+                    obj.html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Wait`);
+                    obj.attr('disabled', true);
+                },
+                success: function(response) {
+                    obj.html('<i class="fa-file-pdf"></i>');
+                    obj.attr('disabled', false);
+                    if (response.status_code == 200) {
+                        const link = document.createElement('a');
+                        link.href = response.file_url;
+                        link.download = response.file_name;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        toastr.success(response.message, "Success");
+                    } else {
+                        toastr.error(response.message, "Error");
+                    }
+                },
+                error: function(error) {
+                    obj.html('<i class="fa-file-pdf"></i>');
+                    obj.attr('disabled', false);
+                    toastr.error("An error occurred while generating the PDF", "Error");
+                }
+            });
+        } else {
+            toastr.error("Pdf not generated", "Error");
+        }
+    });
 </script>
     <script src="{{ asset('assets/custom/save.js') }}"></script>
     <script src="{{ asset('assets/custom/delete.js') }}"></script>

@@ -16,6 +16,7 @@ return [
     'add' => 'Add Attendance',
     'edit' => 'Edit Attendance',
     'site' => 'Site',
+    'site_name' => 'Site',
     'supervisor' => 'Supervisor',
     'amount' => 'Amount',
     'remark' => 'Remark',

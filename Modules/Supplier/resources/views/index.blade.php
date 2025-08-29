@@ -1,46 +1,47 @@
 @extends('layouts.app')
 @section('title', __('supplier::message.list'))
 @section('content')
-<div class="row">
-    <div class="col-12 mb-2">
-        <h5 class="content-header-title float-start mb-0">{{ __('supplier::message.list') }}</h5>
-        @can('supplier-create')
-        <a href="{{route('supplier.create')}}" class="btn btn-sm me-1 btn-primary new-create float-end"><i class="fa fa-plus me-25"></i> {{ __('message.common.addNew') }}</a>
-        @endcan
-    </div>
-    <div class="col-12">
-        <div class="card p-1">
-            <div class="card-body">
-                <table id="table" class="datatables-basic table table-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>{{ __('supplier::message.supplier_name') }}</th>
-                            <th>{{ __('supplier::message.mobile') }}</th>
-                            <th>{{ __('supplier::message.contact_number') }}</th>
-                            <th>{{ __('supplier::message.gst_number') }}</th>
-                            <th>{{ __('message.common.action') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    <div class="row">
+        <div class="col-12 mb-2">
+            <h5 class="content-header-title float-start mb-0">{{ __('supplier::message.list') }}</h5>
+            @can('supplier-create')
+                <a href="{{ route('supplier.create') }}" class="btn btn-sm me-1 btn-primary new-create float-end"><i
+                        class="fa fa-plus me-25"></i> {{ __('message.common.addNew') }}</a>
+            @endcan
+        </div>
+        <div class="col-12">
+            <div class="card p-1">
+                <div class="card-body">
+                    <table id="table" class="datatables-basic table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>{{ __('supplier::message.supplier_name') }}</th>
+                                <th>{{ __('supplier::message.mobile') }}</th>
+                                <th>{{ __('supplier::message.contact_number') }}</th>
+                                <th>{{ __('supplier::message.gst_number') }}</th>
+                                <th>{{ __('message.common.action') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="detailModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered align-items-start modal-xl">
-        <div class="modal-content" id="modal_content">
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="detailModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered align-items-start modal-xl">
+            <div class="modal-content" id="modal_content">
+            </div>
         </div>
     </div>
-</div>
 @endsection
 
 @section('pagescript')
-<script type="application/javascript">
+    <script type="application/javascript">
     'use strict';
     const URL = "{{route('supplier.index')}}";
     var table = '';
@@ -59,7 +60,7 @@
                 [15, 30, 50, 100, "All"]
             ],
             order: [
-                [0, 'desc']
+                [1, 'asc']
             ],
             columns: [{
                     data: 'id',
@@ -153,5 +154,5 @@
         }
     });
 </script>
-<script src="{{ asset('assets/custom/delete.js') }}"></script>
+    <script src="{{ asset('assets/custom/delete.js') }}"></script>
 @endsection
