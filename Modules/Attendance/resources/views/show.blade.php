@@ -1,9 +1,12 @@
 @extends('layouts.app')
-@section('title', __('attendance::message.attendance'))
+@section('title', 'Report')
 @section('content')
 <div class="row">
      <div class="col-12 mb-2">
-          <h5 class="content-header-title float-start mb-0">{{ __('attendance::message.list') }}</h5>
+          <h5 class="content-header-title float-start mb-0">Report</h5>
+          @can('attendance-list')
+          <a href="{{ route('attendance.index') }}" role="button" class="btn btn-sm btn-primary float-end"><i class="fa fa-arrow-left me-1"></i> {{ __('message.common.back') }}</a>
+          @endcan
      </div>
      <div class="col-12 mb-2">
           <div class="card">
@@ -21,15 +24,6 @@
                                    <input type="text" class="form-control flatpickr" name="e_date" id="e_date" value="{{ date('Y-m-d') }}" autocomplete="off" placeholder="{{ __('message.common.end_date') }}" readonly>
                               </div>
 
-                              <div class="col-12 col-md-4 col-lg-2 m-0">
-                                   <label class="form-label" for="leave_type">{{ __('attendance::message.type') }}</label>
-                                   <select id="leave_type" name="leave_type" class="form-select select2">
-                                        <option value="All">{{ __('message.common.all') }}</option>
-                                        <option value="Half">{{ __('attendance::message.half') }}</option>
-                                        <option value="Full">{{ __('attendance::message.full') }}</option>
-                                        <option value="Absent">{{ __('attendance::message.absent') }}</option>
-                                   </select>
-                              </div>
 
                               <div class="col-12 col-md-4 col-lg-2 m-0">
                                    <label class="form-label" for="site_id">{{ __('attendance::message.site') }}</label>
@@ -44,6 +38,13 @@
                               <div class="col-12 col-md-4 col-lg-2 m-0">
                                    <label class="form-label" for="contractor_id">{{ __('attendance::message.contractor') }}</label>
                                    <select id="contractor_id" name="contractor_id" class="form-select select2">
+                                        <option selected value="All">{{ __('message.common.all') }}</option>
+                                   </select>
+                              </div>
+
+                              <div class="col-12 col-md-4 col-lg-2 m-0">
+                                   <label class="form-label" for="labour_id">{{ __('attendance::message.labour') }}</label>
+                                   <select id="labour_id" name="labour_id" class="form-select select2">
                                         <option selected value="All">{{ __('message.common.all') }}</option>
                                    </select>
                               </div>
@@ -64,17 +65,21 @@
                          <thead>
                               <tr>
                                    <th>#</th>
-                                   <th>{{ __('attendance::message.date') }}</th>
-                                   <th>{{ __('attendance::message.type') }}</th>
                                    <th>{{ __('attendance::message.labour') }}</th>
                                    <th>{{ __('attendance::message.contractor') }}</th>
                                    <th>{{ __('attendance::message.site') }}</th>
-                                   <th>{{ __('attendance::message.supervisor') }}</th>
-                                   <th>{{ __('message.common.action') }}</th>
+                                   <th>Full</th>
+                                   <th>Half</th>
+                                   <th>Absent</th>
+                                   <th>Salary</th>
                               </tr>
                          </thead>
                          <tbody>
                          </tbody>
+                         <tfoot>
+                              <td colspan="7" class="text-end pe-5">Total</td>
+                              <td class="total text-end pe-5">0.00</td>
+                         </tfoot>
                     </table>
                </div>
           </div>
@@ -86,7 +91,7 @@
 @section('pagescript')
 <script type="application/javascript">
      'use strict';
-     const URL = "{{route('attendance.index')}}";
+     const URL = "{{route('attendance.show',1)}}";
      var table = '';
      $(function() {
           table = $('#table').DataTable({
@@ -95,9 +100,9 @@
                     data: function(d) {
                          d.s_date = $('#s_date').val();
                          d.e_date = $('#e_date').val();
-                         d.leave_type = $('#leave_type').val();
                          d.site_id = $('#site_id').val();
                          d.contractor_id = $('#contractor_id').val();
+                         d.labour_id = $("#labour_id").val();
                     }
                },
                processing: true,
@@ -115,33 +120,11 @@
                     [1, 'asc']
                ],
                columns: [{
-                         data: 'id',
-                         render: function(data, type, row, meta) {
-                              var rowNumber = meta.row + meta.settings._iDisplayStart + 1;
-                              var isResponsive = meta.settings.responsive && meta.settings.responsive.details;
-                              if (type === 'display' && isResponsive && meta.settings.responsive.details.type === 'column') {
-                                   return '';
-                              } else {
-                                   return rowNumber;
-                              }
-                         },
+                         data: 'DT_RowIndex',
+                         name: 'DT_RowIndex',
+                         title: '#',
                          orderable: false,
-                         createdCell: function(td, cellData, rowData, row, col) {
-                              var isResponsive = table.responsive.hasHidden();
-                              if (isResponsive) {
-                                   $(td).addClass('dtr-control');
-                              } else {
-                                   $(td).removeClass('dtr-control');
-                              }
-                         }
-                    },
-                    {
-                         data: 'date',
-                         name: 'date'
-                    },
-                    {
-                         data: 'type',
-                         name: 'type'
+                         searchable: false
                     },
                     {
                          data: 'labour_name',
@@ -156,15 +139,40 @@
                          name: 'site.site_name'
                     },
                     {
-                         data: 'user_name',
-                         name: 'user.name'
+                         data: 'full_count',
+                         name: 'full_count'
                     },
                     {
-                         data: 'action',
-                         name: 'action',
-                         visible: false
-                    }
+                         data: 'half_count',
+                         name: 'half_count'
+                    },
+                    {
+                         data: 'absent_count',
+                         name: 'absent_count'
+                    },
+                    {
+                         data: 'salary',
+                         name: 'salary',
+                         className: 'text-end pe-5'
+                    },
                ],
+               footerCallback: function(row, data, start, end, display) {
+                    let api = this.api();
+                    const safeParse = (val) => {
+                         if (val === null || val === undefined || val === '-' || val === '') return 0;
+                         if (typeof val === 'string') val = val.replace(/,/g, '').trim();
+                         let num = parseFloat(val);
+                         return isNaN(num) ? 0 : num;
+                    };
+
+                    let totalSalary = api.column(7, {
+                              page: 'current'
+                         }).data()
+                         .reduce((a, b) => safeParse(a) + safeParse(b), 0);
+
+                    $('.total').html(totalSalary.toFixed(2));
+
+               },
                initComplete: function(settings, json) {
                     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                     var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
@@ -225,6 +233,43 @@
                });
           } else {
                $('#contractor_id').val('All').trigger('change');
+          }
+     });
+
+     $(document).on('change', '#contractor_id', function(e) {
+          e.preventDefault();
+          var id = $(this).val();
+          if (id != 'All') {
+               $("#labour_id").append(`<option value="" selected><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Wait</option>`);
+               var route = "{{ route('get-contractor-labour') }}";
+               $.ajax({
+                    type: "get",
+                    url: route,
+                    dataType: 'json',
+                    data: {
+                         "id": id,
+                         "_token": "{{ csrf_token() }}",
+                    },
+                    success: function(response) {
+                         if (response.status_code == 200) {
+                              $("#labour_id").empty();
+                              $("#labour_id").append(`<option value="All" selected>{{ __('message.common.all') }}</option>`);
+                              if (response.result.length > 0) {
+                                   $.each(response.result, function(index, row) {
+                                        $("#labour_id").append($("<option value='" + row.id + "'>" + row.labour_name + "</option>"));
+                                   });
+                              } else {
+                                   toastr.warning('Labour not found.', "Warning");
+                              }
+                         } else if (response.status_code == 201 || response.status_code == 404) {
+                              toastr.warning(response.message, "Warning");
+                         } else {
+                              toastr.error(response.message, "Opps!");
+                         }
+                    }
+               });
+          } else {
+               $('#labour_id').val('All').trigger('change');
           }
      });
 </script>
