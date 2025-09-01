@@ -102,16 +102,15 @@ return true;
     };
 @endphp
 
-<ul class="menu-inner pb-2 pb-xl-0">
-    <li class="menu-item {{ request()->routeIs('dashboard') ? 'active open' : '' }}">
+<ul class="menu-inner pb-2 pb-xl-0">    
+   {{-- <li class="menu-item {{ request()->routeIs('dashboard') ? 'active open' : '' }}">
         <a href="/" class="menu-link">
             <i class="menu-icon icon-base ti tabler-smart-home"></i>
-            <div>{{ __('message.dashboard') }}</div>
+            <div>{{ __('message.dashboard') }} AA</div>
         </a>
-    </li>
+    </li>--}}
 
     @foreach ($menus as $menu)
-
         @php
             if ($menu->module_name != null) {
                 $moduleName = Module::getModulePath($menu->module_name);
@@ -145,9 +144,6 @@ return true;
             $shouldShowMenu = $enabled && ($hasOwnPermission || $hasChildPermission);
 
         @endphp
-
-
-
 
         @if ($shouldShowMenu && $menuUrlActive)
             <li
