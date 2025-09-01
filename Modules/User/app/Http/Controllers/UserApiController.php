@@ -99,6 +99,7 @@ class UserApiController extends Controller
         try {
             $user = User::select('id','name')
                 ->orderBy('name', 'asc')
+                ->where('id', '!=', Auth::id())
                 ->get();
             // $supervisor = User::select('id', 'name')->orderBy('id', 'DESC')->get();
             return response(['status' => true, 'message' => 'User Dropdown', 'all_user' => $user], 200);

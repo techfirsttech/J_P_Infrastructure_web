@@ -1,6 +1,43 @@
 @extends('layouts.app')
 @section('title', __('incomemaster::message.incomeMaster'))
 @section('content')
+    <div class="row mb-3">
+
+        <div class="col-md-3 form-group custom-input-group">
+            <label for="filter_site_id" class="form-label">Site <span class="text-danger">*</span></label>
+            <select id="filter_site_id" name="filter_site_id" class="select2 form-select">
+                <option value="">All Sites</option>
+                @foreach ($siteMaster as $site)
+                    <option value="{{ $site->id }}">{{ $site->site_name }}</option>
+                @endforeach
+            </select>
+            <span class="invalid-feedback d-block" id="error_filter_site_id" role="alert"></span>
+        </div>
+        <div class="col-md-3 form-group custom-input-group">
+            <label for="filter_supervisor_id" class="form-label">Supervisor<span class="text-danger">*</span></label>
+            <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
+                <option value="">All Supervisors</option>
+                @foreach ($supervisor as $supervisors)
+                    <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
+                @endforeach
+            </select>
+            <span class="invalid-feedback d-block" id="error_filter_supervisor_id" role="alert"></span>
+        </div>
+        <div class="col-md-2 form-group custom-input-group">
+            <label class="form-label" for="filter_start_date">Start Date</label>
+            <input type="text" class="form-control flatpickr-date" name="filter_start_date" id="filter_start_date"
+                placeholder="End Date" value="">
+        </div>
+        <div class="col-md-2 form-group custom-input-group">
+            <label class="form-label" for="filter_end_date">End Date</label>
+            <input type="text" class="form-control flatpickr-date" name="filter_end_date" id="filter_end_date"
+                placeholder="End Date" value="">
+        </div>
+        <div class="col-md-2 text-end pt-5">
+            <button class="btn btn-primary px-3" id="filter_button"><i class="fa fa-search"></i></button>
+            <button class="btn btn-secondary px-3" id="reset_button"><i class="fa fa-refresh"></i></button>
+        </div>
+    </div>
     <div class="row">
         <div class="col-12 mb-2">
             <h5 class="content-header-title float-start mb-0">{{ __('incomemaster::message.list') }}</h5>
@@ -32,7 +69,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="inlineModal" tabindex="-1" aria-labelledby="exampleModalLabel" >
+    <div class="modal fade" id="inlineModal" tabindex="-1" aria-labelledby="exampleModalLabel">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header bg-transparent">
@@ -86,7 +123,8 @@
                                     role="alert">{{ $errors->first('date') }}</span>
                             </div>
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
-                                <label class="form-label" for="remark">{{ __('incomemaster::message.remark') }} </label>
+                                <label class="form-label" for="remark">{{ __('incomemaster::message.remark') }}
+                                </label>
                                 <textarea class="form-control" name="remark" id="remark"> </textarea>
                                 <span class="invalid-feedback d-block" id="error_remark"
                                     role="alert">{{ $errors->first('remark') }}</span>
@@ -113,7 +151,15 @@
      var table = '';
      $(function() {
           table = $('#table').DataTable({
-               ajax: URL,
+              ajax: {
+                    url: "{{ route('incomemaster.index') }}",
+                    data: function(d) {
+                        d.site_id = $('#filter_site_id').val();
+                        d.supervisor_id = $('#filter_supervisor_id').val();
+                        d.start_date = $('#filter_start_date').val();
+                        d.end_date = $('#filter_end_date').val();
+                    }
+                },
                processing: true,
                serverSide: true,
                fixedHeader: true,
@@ -279,14 +325,36 @@
           }
      });
 
-     $(document).ready(function() {
+    //  $(document).ready(function() {
+    //     flatpickr('.flatpickr-date', {
+    //         enableTime: false,
+    //         dateFormat: 'd-m-Y',
+    //         defaultDate: today,
+    //         maxDate: new Date(),
+    //         appendTo: document.getElementById('inlineModal')
+    //     });
+    // });
+
+     $('#filter_button').click(function() {
+        table.ajax.reload();
+    });
+
+    $(document).ready(function() {
         flatpickr('.flatpickr-date', {
             enableTime: false,
             dateFormat: 'd-m-Y',
-            defaultDate: today,
+            defaultDate: '',
             maxDate: new Date(),
-            appendTo: document.getElementById('inlineModal')
         });
+    });
+
+
+    $('#reset_button').click(function() {
+        $('#filter_site_id').val('');
+        $('#filter_supervisor_id').val('');
+        $('#filter_start_date').val('');
+        $('#filter_end_date').val('');
+        table.ajax.reload();
     });
 
 
