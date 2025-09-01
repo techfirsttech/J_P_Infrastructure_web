@@ -24,6 +24,7 @@ return [
     'common.priority' => 'Priority',
     'common.enter_priority' => 'Enter Priority',
     'common.status' => 'Status',
+    'common.date' => 'Date',
 
     'common.total' => 'Total',
     'common.sub_total' => 'Sub Total',

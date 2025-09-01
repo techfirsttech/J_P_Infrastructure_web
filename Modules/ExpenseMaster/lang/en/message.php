@@ -28,7 +28,6 @@ return [
     'enter_amount' => 'Enter Amount',
     'select_site' => 'Select Site',
     'select_supervisor' => 'Select Supervisor',
-    'expenseMaster' => 'Expense Master',
     'expenseCategoryName' => 'Expense Category',
     'ledger' => 'Ledger',
     'credit' => 'Credit',

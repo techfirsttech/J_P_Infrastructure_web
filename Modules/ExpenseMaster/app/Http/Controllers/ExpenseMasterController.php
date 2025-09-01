@@ -21,7 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ExpenseMasterController extends Controller
 {
-     function __construct()
+    function __construct()
     {
         $this->middleware('permission:expense-master-list|expense-master-create', ['only' => ['index', 'store']]);
         $this->middleware('permission:expense-master-create', ['only' => ['create', 'store']]);
@@ -40,6 +40,7 @@ class ExpenseMasterController extends Controller
             'expense_masters.status',
             'expense_masters.document',
             'expense_masters.remark',
+            DB::raw("DATE_FORMAT(expense_masters.date, '%d-%m-%Y') as date"),
             'site_masters.site_name',
             'expense_categories.expense_category_name',
             'users.name as supervisor_name',
@@ -323,6 +324,7 @@ class ExpenseMasterController extends Controller
             'payment_masters.model_id',
             'payment_masters.amount',
             'payment_masters.status',
+            'payment_masters.remark',
             DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
             'site_masters.site_name',
             'users.name as supervisor_name',
@@ -396,8 +398,8 @@ class ExpenseMasterController extends Controller
                 ->escapeColumns([])
                 ->make(true);
         } else {
-            $sites = SiteMaster::orderBy('site_name','ASC')->get();
-            $supervisors = User::whereHas('roles', fn($q) => $q->where('name', 'Supervisor'))->orderBy('name','ASC')->get();
+            $sites = SiteMaster::orderBy('site_name', 'ASC')->get();
+            $supervisors = User::whereHas('roles', fn($q) => $q->where('name', 'Supervisor'))->orderBy('name', 'ASC')->get();
 
             return view('expensemaster::ledger', compact('sites', 'supervisors', 'totalExpense', 'totalIncome', 'closingBalance'));
         }
@@ -414,6 +416,7 @@ class ExpenseMasterController extends Controller
                 'payment_masters.model_type',
                 'payment_masters.model_id',
                 'payment_masters.amount',
+                'payment_masters.remark',
                 DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
                 'payment_masters.status',
                 'site_masters.site_name',
@@ -495,7 +498,7 @@ class ExpenseMasterController extends Controller
         }
     }
 
-     private function uploadToPublicFolder($file, $imageName, $folder, $thumbFolder)
+    private function uploadToPublicFolder($file, $imageName, $folder, $thumbFolder)
     {
         $originalExtension = $file->getClientOriginalExtension();
         $filename = Str::slug($imageName) . '-' . time() . '.' . $originalExtension;

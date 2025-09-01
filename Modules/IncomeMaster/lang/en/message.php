@@ -25,6 +25,7 @@ return [
     'enter_amount' => 'Enter Amount',
     'select_site' => 'Select Site',
     'select_supervisor' => 'Select Supervisor',
+    'date' => 'Date',
 
 
 

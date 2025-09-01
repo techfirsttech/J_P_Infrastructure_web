@@ -6,7 +6,7 @@
         <div class="col-md-2 form-group custom-input-group">
             <label for="filter_site_id" class="form-label">Site <span class="text-danger">*</span></label>
             <select id="filter_site_id" name="filter_site_id" class="select2 form-select">
-                <option value="">All Sites</option>
+                <option value="">-- All --</option>
                 @foreach ($siteMaster as $site)
                     <option value="{{ $site->id }}">{{ $site->site_name }}</option>
                 @endforeach
@@ -16,7 +16,7 @@
         <div class="col-md-2 form-group custom-input-group">
             <label for="filter_supervisor_id" class="form-label">Supervisor<span class="text-danger">*</span></label>
             <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
-                <option value="">All Supervisors</option>
+                <option value="">-- All --</option>
                 @foreach ($supervisor as $supervisors)
                     <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
                 @endforeach
@@ -26,7 +26,7 @@
         <div class="col-md-2 form-group custom-input-group">
             <label for="filter_expense_category_id" class="form-label">Category<span class="text-danger">*</span></label>
             <select id="filter_expense_category_id" name="filter_expense_category_id" class="select2 form-select">
-                <option value="">All Category</option>
+                <option value="">-- All --</option>
                 @foreach ($expenseCategory as $category)
                     <option value="{{ $category->id }}">{{ $category->expense_category_name }}</option>
                 @endforeach
@@ -66,6 +66,7 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>{{ __('message.common.date') }}</th>
                                 <th>{{ __('expensemaster::message.expenseCategoryName') }}</th>
                                 <th>{{ __('expensemaster::message.site') }}</th>
                                 <th>{{ __('expensemaster::message.supervisor') }}</th>
@@ -213,7 +214,7 @@
                     [15, 30, 50, 100, "All"]
                ],
                order: [
-                    [1, 'asc']
+                    [1, 'desc']
                ],
                columns: [{
                          data: 'id',
@@ -235,6 +236,10 @@
                                    $(td).removeClass('dtr-control');
                               }
                          }
+                    },
+                     {
+                         data: 'date',
+                         name: 'date'
                     },
                     {
                          data: 'expense_category_name',
@@ -265,6 +270,7 @@
                          data: 'status',
                          name: 'status'
                     },
+
                     {
                          data: 'action',
                          name: 'action',
