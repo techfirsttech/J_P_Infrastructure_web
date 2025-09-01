@@ -3,6 +3,7 @@
 namespace Modules\Attendance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,8 @@ use Modules\Attendance\Models\Attendance;
 use Modules\Contractor\Models\Contractor;
 use Modules\Labour\Models\Labour;
 use Modules\SiteMaster\Models\SiteMaster;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class AttendanceController extends Controller
@@ -470,6 +473,86 @@ class AttendanceController extends Controller
             return response(['status_code' => 200, 'message' => 'Labour List', 'result' => $query]);
         } catch (Exception $e) {
             return response(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
+        }
+    }
+
+    public function reportPdf(Request $request)
+    {
+        try {
+            $query = Attendance::select(
+            'attendances.site_id',
+            'attendances.contractor_id',
+            'attendances.labour_id',
+            DB::raw("SUM(amount) as salary"),
+            DB::raw("SUM(CASE WHEN attendances.type = 'Full' THEN 1 ELSE 0 END) as full_count"),
+            DB::raw("SUM(CASE WHEN attendances.type = 'Half' THEN 1 ELSE 0 END) as half_count"),
+            DB::raw("SUM(CASE WHEN attendances.type = 'Absent' THEN 1 ELSE 0 END) as absent_count"),
+            DB::raw("COUNT(*) as total_days")
+        )
+            ->with('labour', 'contractor', 'site', 'user')
+            ->when(!role_super_admin(), function ($q) {
+                return $q->where('attendances.user_id', Auth::id());
+            })
+            ->when(!empty($request->leave_type) && $request->leave_type !== 'All', function ($query) use ($request) {
+                $query->where('attendances.type', $request->leave_type);
+            })
+            ->when(!empty($request->site_id) && $request->site_id !== 'All', function ($query) use ($request) {
+                $query->where('attendances.site_id', $request->site_id);
+            })
+            ->when(!empty($request->contractor_id) && $request->contractor_id !== 'All', function ($query) use ($request) {
+                $query->where('attendances.contractor_id', $request->contractor_id);
+            })
+            ->when(!empty($request->labour_id) && $request->labour_id !== 'All', function ($query) use ($request) {
+                $query->where('attendances.labour_id', $request->labour_id);
+            })
+            ->when(!empty($request->s_date) || !empty($request->e_date), function ($query) use ($request) {
+                $startDate = !empty($request->s_date)
+                    ? date('Y-m-d 00:00:00', strtotime($request->s_date))
+                    : null;
+
+                $endDate = !empty($request->e_date)
+                    ? date('Y-m-d 23:59:59', strtotime($request->e_date))
+                    : ($startDate ? date('Y-m-d 23:59:59', strtotime($request->s_date)) : null);
+
+                if ($startDate && $endDate) {
+                    $query->whereBetween('attendances.date', [$startDate, $endDate]);
+                } elseif ($startDate) {
+                    $query->where('attendances.date', '>=', $startDate);
+                } elseif ($endDate) {
+                    $query->where('attendances.date', '<=', $endDate);
+                }
+            })
+            ->groupBy('attendances.labour_id', 'attendances.site_id', 'attendances.contractor_id');
+            // PDF data
+
+            $attendanceData = $query->get();
+            // dd($attendanceData);
+
+            $data = [
+                'title' => 'Salary Report',
+                'attendanceData' => $attendanceData,
+                'filters' => $request->all()
+            ];
+
+            $pdf = Pdf::loadView('attendance::report-pdf', $data);
+            $pdf->setPaper('A4', 'portrait');
+
+            $fileName = 'report-' . Str::random(10) . '.pdf';
+            $folder = 'report';
+            $fileRelativePath = $folder . '/' . $fileName;
+
+            Storage::disk('public')->put($fileRelativePath, $pdf->output());
+            $fileUrl = url('public/storage/' . $fileRelativePath);
+
+            if (!is_null($query)) {
+                $response = ['status_code' => 200, 'message' => 'Pdf generated successfully.', 'file_url' => $fileUrl, 'file_name' => $fileName];
+            } else {
+                $response = ['status_code' => 500, 'message' => 'Pdf can not generated.'];
+            }
+            return response()->json($response);
+        } catch (\Exception $e) {
+            dd($e);
+            return response()->json(array('status_code' => 500, 'message' => 'Something went wrong. Please try again.'));
         }
     }
 }

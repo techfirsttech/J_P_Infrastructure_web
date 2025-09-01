@@ -54,6 +54,7 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>{{ __('message.common.date') }}</th>
                                 <th>{{ __('incomemaster::message.site') }}</th>
                                 <th>{{ __('incomemaster::message.supervisor') }}</th>
                                 <th>{{ __('incomemaster::message.amount') }}</th>
@@ -172,7 +173,7 @@
                     [15, 30, 50, 100, "All"]
                ],
                order: [
-                    [1, 'asc']
+                    [0, 'desc']
                ],
                columns: [{
                          data: 'id',
@@ -196,6 +197,10 @@
                          }
                     },
                     {
+                         data: 'date',
+                         name: 'date'
+                    },
+                    {
                          data: 'site_name',
                          name: 'site_name'
                     },
@@ -211,6 +216,7 @@
                          data: 'remark',
                          name: 'remark'
                     },
+
                     {
                          data: 'action',
                          name: 'action',

@@ -50,8 +50,11 @@ if ($(".reset").length != 0) {
 // start filter after excel export
 if ($(".export").length != 0) {
     $(document).on('click', '.export', function () {
+        console.info('a');
         var route = $(this).attr('data-route');
         if (route != undefined) {
+        console.info('b');
+
             var me = $(this);
             me.html('<i class="fa fa-spinner fa-spin"></i>');
             me.attr('disabled', true)

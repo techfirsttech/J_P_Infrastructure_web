@@ -490,6 +490,7 @@ class ExpenseMasterApiController extends Controller
                 'payment_masters.model_type',
                 'payment_masters.model_id',
                 'payment_masters.amount',
+                'payment_masters.remark',
                 DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
                 'payment_masters.status',
                 'site_masters.site_name',

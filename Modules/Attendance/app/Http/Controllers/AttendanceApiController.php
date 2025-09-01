@@ -50,7 +50,7 @@ class AttendanceApiController extends Controller
             }
 
 
-
+            $selectAttedanceType = 'attendances.site_id as attendances.site_id';
             if ($request->filled('start_date') && $request->filled('end_date')) {
                 $start = Carbon::parse($request->start_date)->startOfDay();
                 $end = Carbon::parse($request->end_date)->endOfDay();
@@ -58,23 +58,30 @@ class AttendanceApiController extends Controller
             } elseif ($request->filled('start_date')) {
                 $start = Carbon::parse($request->start_date)->startOfDay();
                 $baseQuery->where('attendances.date', '>=', $start);
+                if (!$request->filled('site_id')) {
+                    $baseQuery->groupBy('attendances.date');
+                }
             } elseif ($request->filled('end_date')) {
                 $end = Carbon::parse($request->end_date)->endOfDay();
                 $baseQuery->where('attendances.date', '<=', $end);
             } else {
-                $baseQuery->whereDate('attendances.date', Carbon::today());
+                if (!$request->filled('site_id')) {
+                    $baseQuery->whereDate('attendances.date', Carbon::today());
+                    $baseQuery->groupBy('attendances.type');
+                    $selectAttedanceType = 'attendances.type';
+                }
             }
 
             // Get data
-            $attendanceData = $baseQuery
+            $attendanceDataQuery = $baseQuery
                 ->select(
                     'attendances.site_id',
                     'site_masters.site_name',
                     'attendances.contractor_id',
                     'contractors.contractor_name',
                     'attendances.labour_id',
-                    'attendances.type',
-                    DB::raw("DATE_FORMAT(attendances.date, '%d-%m-%Y') as date"),
+                    $selectAttedanceType,
+                    // DB::raw("DATE_FORMAT(attendances.date, '%d-%m-%Y') as date"),
 
                     'labours.labour_name',
                     DB::raw("SUM(CASE WHEN attendances.type = 'Full' THEN 1 ELSE 0 END) as full_days"),
@@ -87,12 +94,16 @@ class AttendanceApiController extends Controller
                     'attendances.contractor_id',
                     'contractors.contractor_name',
                     'attendances.labour_id',
-                    'attendances.type',
                     'labours.labour_name',
-                    'attendances.date',
                 )
-                ->orderBy('site_masters.site_name')
-                ->get();
+                ->orderBy('site_masters.site_name');
+
+            // echo $attendanceDataQuery->toRawSql();
+
+            $attendanceData = $attendanceDataQuery->get();
+
+
+
 
             // Nest data: Site > Contractor > Labour
             $grouped = $attendanceData
@@ -139,6 +150,7 @@ class AttendanceApiController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -187,8 +199,9 @@ class AttendanceApiController extends Controller
 
         try {
             $yearID = getSelectedYear();
-            $date = $request->date;
             // $date = now()->toDateString();
+
+            $date = date("Y-m-d", strtotime($request->date));
 
             foreach ($request->labour as $labour) {
                 $dailyWage = Labour::where('id', $labour['labour_id'])->value('daily_wage');

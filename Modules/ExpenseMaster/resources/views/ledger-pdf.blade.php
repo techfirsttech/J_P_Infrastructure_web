@@ -98,6 +98,7 @@
                     <th class="text-center">Date</th>
                     <th class="text-center">Site</th>
                     <th class="text-center">Supervisor</th>
+                    <th class="text-center">Remark</th>
                     <th class="text-center">Credit</th>
                     <th class="text-center">Debit</th>
                 </tr>
@@ -110,6 +111,7 @@
                         <td>{{ $payment->date ?? '' }}</td>
                         <td>{{ $payment->site_name ?? '' }}</td>
                         <td>{{ $payment->supervisor_name ?? '' }}</td>
+                        <td>{{ $payment->remark ?? '' }}</td>
                         <td class="text-success text-center">
                             @if (strtolower($payment->status) == 'credit')
                                 <b>{{ $payment->amount }}</b>
@@ -129,7 +131,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="4" class="text-end"> Closing Balance : {{ $closing_balance }}</th>
+                    <th colspan="5" class="text-end"> Closing Balance : {{ $closing_balance }}</th>
                     <th class="text-end">Total Income : {{ $total_income }}</th>
                     <th class="text-end">Total Expense : {{ $total_expense }}</th>
                 </tr>
