@@ -63,4 +63,11 @@ return [
     'common.somethingWentWrong.PleaseTryAgain.' => 'Something went wrong. Please try again.',
 
 
+    'dashboard.filter' => 'Filter',
+    'dashboard.date_filter' => 'Date Filter',
+    'dashboard.today' => 'Today',
+    'dashboard.week' => 'Week',
+    'dashboard.month' => 'Month',
+    'dashboard.year' => 'Year',
+    'dashboard.custom' => 'Custom',
 ];
