@@ -77,7 +77,7 @@ class ExpenseMasterController extends Controller
             $query->where('expense_masters.created_at', '<=', $endDate);
         }
 
-
+$query->orderBy('expense_masters.id','desc');
 
         if (request()->ajax()) {
             return DataTables::of($query)
@@ -85,7 +85,7 @@ class ExpenseMasterController extends Controller
                 ->addColumn('action', function ($row) {
                     $show = '';
                     $edit = 'expense-master-edit';
-                    $delete = '';
+                    $delete = 'expense-master-delete';
                     $assign = ''; //'assign-user-list';
                     $showURL = "";
                     $editURL = "";
@@ -132,7 +132,6 @@ class ExpenseMasterController extends Controller
                         return '';
                     }
                 })
-                // ->editColum('document', function ($row) {})
                 ->escapeColumns([])
                 ->make(true);
         } else {
@@ -179,8 +178,8 @@ class ExpenseMasterController extends Controller
         if ($request->status != "Approve") {
             PaymentMaster::where([['model_type', 'Expense'], ['model_id', $request->id]])->delete();
         } else {
-            // PaymentMaster::where([['model_type','Expense'],['model_id',$request->id]])->delete();
-
+             // PaymentMaster::where([['model_type','Expense'],['model_id',$request->id]])->update('deleted_at' => Null);
+            PaymentMaster::where([['model_type', 'Expense'],['model_id', $request->id]])->restore();
         }
         $response = ['status' => true, 'message' => 'Status change successfully.'];
         $response = ['data' => route('expensemaster.index'), 'status' => true, 'message' => ' Status change successfully.'];
@@ -310,7 +309,26 @@ class ExpenseMasterController extends Controller
 
     public function update(Request $request, $id) {}
 
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+        // dd($id);
+        try {
+            $expenseMaster = ExpenseMaster::select('id')->where('id', $id)->first();
+            if (!is_null($expenseMaster)) {
+                //  if (storage_delete_check($expenseMaster->id)) {
+                PaymentMaster::where([['model_type','Expense'],['model_id',$id]])->delete();
+                $expenseMaster->delete();
+                return response()->json(['status_code' => 200, 'message' => 'Deleted successfully.']);
+                // } else {
+                //     return response()->json(['status_code' => 201, 'message' => 'This Expense already use in another module.']);
+                // }
+            } else {
+                return response()->json(['status_code' => 404, 'message' => 'expenseMaster not found.']);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
+        }
+    }
 
 
 

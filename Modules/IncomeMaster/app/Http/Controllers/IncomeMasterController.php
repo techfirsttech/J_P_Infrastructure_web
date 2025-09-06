@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Modules\IncomeMaster\Models\IncomeMaster;
+use Modules\Party\Models\Party;
 use Modules\PaymentMaster\Models\PaymentMaster;
 use Modules\SiteMaster\Models\SiteMaster;
 use Modules\User\Models\User;
@@ -93,7 +94,8 @@ class IncomeMasterController extends Controller
                 })
                 ->orderBy('id', 'DESC')
                 ->get();
-            return view('incomemaster::index',compact('siteMaster','supervisor'));
+            $party = Party::select('id','party_name')->get();
+            return view('incomemaster::index',compact('siteMaster','supervisor','party'));
         }
     }
     // public function index()
@@ -183,6 +185,7 @@ class IncomeMasterController extends Controller
             $incomeMaster->user_id = Auth::id();
             $incomeMaster->site_id = $request->site_id;
             $incomeMaster->supervisor_id = $request->supervisor_id;
+            $incomeMaster->party_id = $request->party_id;
             $incomeMaster->amount = $request->amount;
             $incomeMaster->remark = $request->remark;
             $incomeMaster->date = (!empty($request->date)) ? date('Y-m-d', strtotime($request->date)) : null;

@@ -14,4 +14,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('get-contractor-labour', [AttendanceController::class, 'getContractorLabour'])->name('get-contractor-labour');
 
     Route::post('report-pdf', [AttendanceController::class, 'reportPdf'])->name('report-pdf');
+    Route::get('get-site', [AttendanceController::class, 'getSitesBySupervisor'])->name('get-site');
 });

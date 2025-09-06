@@ -32,6 +32,7 @@ return [
     'credit' => 'Credit',
     'debit' => 'Debit',
     'document' => 'Document',
+    'fromSupervisor' => 'From Supervisor'
 
 
 

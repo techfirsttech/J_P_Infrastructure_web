@@ -62,7 +62,7 @@
 
                             <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
                                 <label class="form-label" for="unit_id">{{ __('rawmaterialmaster::message.unit') }}<span
-                                        class="text-danger">*</span></label>
+                                        class="text-danger"></span></label>
 
                                 <select id="unit_id" name="unit_id" class="select2 form-select">
                                     <option value="">{{ __('message.common.select') }}</option>
@@ -77,7 +77,7 @@
                                 <span class="invalid-feedback d-block" id="error_unit_id"
                                     role="alert">{{ $errors->first('unit_id') }}</span>
                             </div>
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
+                            <div class="col-12 col-sm-12 col-md-6 col-lg-4 form-group custom-input-group">
                                 <label class="form-label"
                                     for="alert_quantity">{{ __('rawmaterialmaster::message.alert_quantity') }}
                                 </label>

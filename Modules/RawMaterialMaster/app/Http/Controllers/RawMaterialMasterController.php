@@ -85,19 +85,24 @@ class RawMaterialMasterController extends Controller
         $validator = Validator::make($request->all(), [
             'material_name' => [
                 'required',
-                Rule::unique('raw_material_masters')->where(function ($query) use ($request) {
-                    return $query->where('deleted_at', '=', null);
-                })
+                Rule::unique('raw_material_masters', 'material_name')->whereNull('deleted_at')
+                // Rule::unique('raw_material_masters')->where(function ($query) use ($request) {
+                //     return $query->where('deleted_at', '=', null);
+                // })
             ],
         ], [
             'material_name.required' => __('rawmaterialmaster::message.enter_material_name'),
             'material_name.unique' => __('rawmaterialmaster::message.enter_unique_material_name'),
 
         ]);
+        // dd('aa');
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            $response = ['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()];
+            return response()->json($response);
         }
+
+
 
         DB::beginTransaction();
         try {
@@ -119,6 +124,7 @@ class RawMaterialMasterController extends Controller
                 return response()->json(['status_code' => 403, 'message' => 'Raw Material added failed.']);
             }
         } catch (\Exception $e) {
+            dd($e);
             DB::rollback();
             return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
         }
@@ -179,10 +185,10 @@ class RawMaterialMasterController extends Controller
         }
     }
 
-    public function destroy(Request $request)
+    public function destroy($id)
     {
         try {
-            $rawMaterialMaster = RawMaterialMaster::where('id', $request->id)->first();
+            $rawMaterialMaster = RawMaterialMaster::where('id', $id)->first();
             $rawMaterialMaster->delete();
             return response()->json(['status_code' => 200, 'message' => 'Deleted successfully.']);
         } catch (\Exception $e) {
@@ -206,6 +212,8 @@ class RawMaterialMasterController extends Controller
             'raw_material_stock_transactions.type',
             'raw_material_stock_transactions.remark',
             'raw_material_stock_transactions.created_by',
+            DB::raw("DATE_FORMAT(raw_material_stock_transactions.created_at, '%d-%m-%Y') as date"),
+
             'raw_material_masters.material_name',
             'site_masters.site_name',
             'users.name as supervisor_name',
@@ -266,25 +274,26 @@ class RawMaterialMasterController extends Controller
                 ->addColumn('action', function ($row) {
                     $show = '';
                     $edit = '';
-                    $delete = '';
+                    $delete = 'material-master-delete';
                     $assign = ''; //'assign-user-list';
                     $showURL = "";
                     $editURL = "";
-                    return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign'));
+                     $deleteURL = route('transaction-delete', $row->id);
+                    return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign','deleteURL'));
                 })
                 ->editColumn('type', function ($row) {
                     if ($row->type == 'In') {
                         return '<span class="badge bg-label-success ">In</span>';
                     } elseif ($row->type == 'Out') {
-                        return '<span class="badge bg-label-danger ">Out</span>';
+                        return '<span class="badge bg-label-danger ">Use</span>';
                     }
                 })
                 ->escapeColumns([])
                 ->make(true);
         } else {
-            $materials = RawMaterialMaster::select('id', 'material_name')->orderBy('material_name','asc')->get();
-            $sites = SiteMaster::select('id', 'site_name')->orderBy('site_name','asc')->get();
-            $supervisors = User::role('Supervisor')->select('id', 'name')->orderBy('name','asc')->get();
+            $materials = RawMaterialMaster::select('id', 'material_name')->orderBy('material_name', 'asc')->get();
+            $sites = SiteMaster::select('id', 'site_name')->orderBy('site_name', 'asc')->get();
+            $supervisors = User::role('Supervisor')->select('id', 'name')->orderBy('name', 'asc')->get();
 
             return view('rawmaterialmaster::transaction', compact('materials', 'sites', 'supervisors'));
             // return view('rawmaterialmaster::transaction');
@@ -356,12 +365,24 @@ class RawMaterialMasterController extends Controller
                     $assign = '';;
                     $showURL = "";
                     $editURL = "";
+
                     return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign'));
                 })
                 ->escapeColumns([])
                 ->make(true);
         } else {
             return view('rawmaterialmaster::stock-transfer-list');
+        }
+    }
+
+    public function delete($id)
+    {
+        try {
+            $rawMaterialStockTransaction = RawMaterialStockTransaction::where('id', $id)->first();
+            $rawMaterialStockTransaction->delete();
+            return response()->json(['status_code' => 200, 'message' => 'Deleted successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
         }
     }
 }

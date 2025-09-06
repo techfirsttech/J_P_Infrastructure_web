@@ -22,7 +22,7 @@ return [
     'material_category_name' => 'Raw Material Name',
     'list' => 'Raw Material Master List',
     'enter_material_category_name' => 'Enter Raw Material Name',
-    'enter_material_category_name' => 'Enter Raw Material Name',
+    'enter_unique_material_name' => 'Enter Unique Material Name',
     'enter_unique_material_category_name' => 'Enter unique raw material name',
     'material_category' => 'Raw Material Category',
     'materialName' => 'Raw Material Name',

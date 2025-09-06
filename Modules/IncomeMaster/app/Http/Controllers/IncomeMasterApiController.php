@@ -50,20 +50,29 @@ class IncomeMasterApiController extends Controller
                 'income_masters.supervisor_id',
                 'income_masters.amount',
                 'income_masters.remark',
+                'income_masters.party_id',
                 DB::raw("DATE_FORMAT(income_masters.date, '%d-%m-%Y') as date"),
                 'site_masters.site_name',
+                'parties.party_name',
                 'supervisor.name as supervisor_name',
                 'user.name as user_name',
             )
                 ->leftJoin('site_masters', 'income_masters.site_id', '=', 'site_masters.id')
                 ->leftJoin('users as supervisor', 'supervisor.id', '=', 'income_masters.supervisor_id')
-                ->leftJoin('users as user', 'user.id', '=', 'income_masters.user_id');
+                ->leftJoin('users as user', 'user.id', '=', 'income_masters.user_id')
+                ->leftJoin('parties', 'parties.id', '=', 'income_masters.party_id');
 
             $user = Auth::user();
             $role = $user->roles->first();
 
+            // if ($role && $role->name === 'Supervisor') {
+            //     $query->where('income_masters.user_id', $user->id);
+            // }
             if ($role && $role->name === 'Supervisor') {
-                $query->where('income_masters.user_id', $user->id);
+                $query->where(function ($q) use ($user) {
+                    $q->where('income_masters.user_id', $user->id)
+                        ->orWhere('income_masters.supervisor_id', $user->id);
+                });
             }
 
             if ($request->filled('supervisor_id')) {
@@ -73,17 +82,20 @@ class IncomeMasterApiController extends Controller
             if ($request->filled('site_id')) {
                 $query->where('income_masters.site_id', $request->site_id);
             }
+            if ($request->filled('party_id')) {
+                $query->where('income_masters.party_id', $request->party_id);
+            }
 
             if ($request->filled('start_date') && $request->filled('end_date')) {
                 $startDate = Carbon::parse($request->start_date)->startOfDay();
                 $endDate = Carbon::parse($request->end_date)->endOfDay();
-                $query->whereBetween('income_masters.created_at', [$startDate, $endDate]);
+                $query->whereBetween('income_masters.date', [$startDate, $endDate]);
             } elseif ($request->filled('start_date')) {
                 $startDate = Carbon::parse($request->start_date)->startOfDay();
-                $query->where('income_masters.created_at', '>=', $startDate);
+                $query->where('income_masters.date', '>=', $startDate);
             } elseif ($request->filled('end_date')) {
                 $endDate = Carbon::parse($request->end_date)->endOfDay();
-                $query->where('income_masters.created_at', '<=', $endDate);
+                $query->where('income_masters.date', '<=', $endDate);
             }
 
 
@@ -153,6 +165,7 @@ class IncomeMasterApiController extends Controller
             $incomeMaster = new IncomeMaster();
             $incomeMaster->user_id = Auth::id();
             $incomeMaster->site_id = $request->site_id;
+            $incomeMaster->party_id = $request->party_id;
             $incomeMaster->supervisor_id = $request->supervisor_id;
             $incomeMaster->amount = $request->amount;
             $incomeMaster->remark = $request->remark;
@@ -229,6 +242,7 @@ class IncomeMasterApiController extends Controller
             $incomeMaster = IncomeMaster::where('id', $request->id)->first();
             $incomeMaster->site_id = $request->site_id;
             $incomeMaster->supervisor_id = $request->supervisor_id;
+            $incomeMaster->party_id = $request->party_id;
             $incomeMaster->amount = $request->amount;
             $incomeMaster->remark = $request->remark;
             $incomeMaster->year_id = $yearID;

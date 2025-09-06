@@ -4,18 +4,18 @@
 <div class="row g-6">
     <!-- <h1>Hello</h1> -->
 </div>
-<button class="btn btn-primary dashboard-filter-btn" type="button" data-bs-toggle="offcanvas"
+{{-- <button class="btn btn-primary dashboard-filter-btn" type="button" data-bs-toggle="offcanvas"
     data-bs-target="#offcanvasEnd" aria-controls="offcanvasEnd">
     <i class="fas fa-filter"></i>
-</button>
+</button> --}}
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEnd" aria-labelledby="offcanvasEndLabel">
     <div class="offcanvas-header">
-        <h5 id="offcanvasEndLabel" class="offcanvas-title">{{ __('dashboard::message.filter') }}</h5>
+        <h5 id="offcanvasEndLabel" class="offcanvas-title">{{ __('message.dashboard.filter') }}</h5>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body flex-grow-0 pt-0">
         <div class="m-0 px-0 pb-6 template-customizer-style w-100">
-            <label for="customizerStyle" class="form-label d-block template-customizer-t-style_label mb-2">{{ __('dashboard::message.date_filter') }}</label>
+            <label for="customizerStyle" class="form-label d-block template-customizer-t-style_label mb-2">{{ __('message.dashboard.date_filter') }}</label>
             <div class="row px-1 template-customizer-styles-options">
                 <div class="col-4 px-2 mb-4">
                     <div class="form-check custom-option custom-option-icon checked">

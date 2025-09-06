@@ -69,8 +69,7 @@
                         </tbody>
                         <tfoot class="bg-light">
                             <tr>
-                                <th colspan="2" class="text-end"><b>Closing Balance :</b></th>
-                                <th class="text-start pe-5 "><b class=" total-balance"> 0.00</b></th>
+                                <th colspan="3" class="text-start ms-2 ps-3"><b>Closing Balance : </b><b class=" total-balance"> 0.00</b></th>
                                 <th class="text-end pe-5"><b>Total</b></th>
                                 <th class=""><b></b></th>
                                 <th class=" text-end pe-5"><b class=" total_credit">0.00</b></th>

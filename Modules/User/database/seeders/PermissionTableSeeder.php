@@ -126,10 +126,19 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'Contractor', 'name' => 'contractor-edit', 'title' => 'Edit'],
             ['title_tag' => 'Contractor', 'name' => 'contractor-delete', 'title' => 'Delete'],
 
-            ['title_tag' => 'StockTransfer', 'name' => 'stoke-transfer-list', 'title' => 'List'],
-            ['title_tag' => 'StockTransfer', 'name' => 'stoke-transfer-create', 'title' => 'Create'],
-            ['title_tag' => 'StockTransfer', 'name' => 'stoke-transfer-edit', 'title' => 'Edit'],
-            ['title_tag' => 'StockTransfer', 'name' => 'stoke-transfer-delete', 'title' => 'Delete'],
+            ['title_tag' => 'StockTransfer', 'name' => 'stock-transfer-list', 'title' => 'List'],
+            ['title_tag' => 'StockTransfer', 'name' => 'stock-transfer-create', 'title' => 'Create'],
+            ['title_tag' => 'StockTransfer', 'name' => 'stock-transfer-edit', 'title' => 'Edit'],
+            ['title_tag' => 'StockTransfer', 'name' => 'stock-transfer-delete', 'title' => 'Delete'],
+
+            ['title_tag' => 'Payment_Master', 'name' => 'payment-ledger-list', 'title' => 'Ledger'],
+
+            ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-list', 'title' => 'List'],
+            ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-create', 'title' => 'Create'],
+
+            ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-list', 'title' => 'List'],
+            ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-create', 'title' => 'Create'],
+
         ];
 
         foreach ($permissions as $permissionData) {

@@ -25,22 +25,24 @@ class PaymentMasterApiController extends Controller
                 'payment_transfers.to_supervisor_id as to_user_id',
                 'payment_transfers.amount',
                 'payment_transfers.remark',
+                'payment_transfers.site_id',
                 // DB::raw("DATE_FORMAT(payment_transfers.date, '%d-%m-%Y') as date"),
                 'user.name as from_user_name',
                 'to_user.name as to_user_name',
+                'site_masters.site_name',
             )
                 ->leftJoin('users as user', 'user.id', '=', 'payment_transfers.supervisor_id')
-                ->leftJoin('users as to_user', 'to_user.id', '=', 'payment_transfers.to_supervisor_id');
-
+                ->leftJoin('users as to_user', 'to_user.id', '=', 'payment_transfers.to_supervisor_id')
+                ->leftJoin('site_masters','site_masters.id', '=','payment_transfers.site_id');
             $user = Auth::user();
             $role = $user->roles->first();
 
             if ($role && $role->name === 'Supervisor') {
-                $query->where('payment_transfers.from_user_id', $user->id);
+                $query->where('payment_transfers.supervisor_id', $user->id);
             }
 
             if ($request->filled('to_user_id')) {
-                $query->where('payment_transfers.to_user_id', $request->to_user_id);
+                $query->where('payment_transfers.to_supervisor_id', $request->to_user_id);
             }
 
             if ($request->filled('site_id')) {
@@ -136,6 +138,7 @@ class PaymentMasterApiController extends Controller
             $paymentMaster->save();
 
             $incomeMaster = new IncomeMaster();
+            $incomeMaster->site_id = $request->site_id;
             $incomeMaster->supervisor_id = $request->to_supervisor_id;
             $incomeMaster->amount = $request->amount;
             $incomeMaster->remark = $request->remark;
@@ -159,6 +162,7 @@ class PaymentMasterApiController extends Controller
 
             $paymentTransfer = new PaymentTransfer();
             $paymentTransfer->supervisor_id = Auth::id();
+            $paymentTransfer->site_id = $request->site_id;
             $paymentTransfer->to_supervisor_id = $request->to_supervisor_id;
             $paymentTransfer->amount = $incomeMaster->amount;
             $paymentTransfer->remark = $request->remark;
