@@ -111,6 +111,7 @@ class RawMaterialCategoryController extends Controller
 
     public function destroy($id)
     {
+        dd($id);
         try {
             $rawMaterialCategory = RawMaterialCategory::select('id')->where('id', $id)->first();
             if (!is_null($rawMaterialCategory)) {

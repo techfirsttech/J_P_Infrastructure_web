@@ -35,8 +35,15 @@ class UserController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     $show = '';
-                    $edit = 'users-edit';
-                    $delete = 'users-delete';
+                    if ($row->id == 27) {
+
+                        $edit = '';
+                        $delete = '';
+                    } else {
+                        $edit = 'users-edit';
+                        $delete = 'users-delete';
+                    }
+
                     $assign = ''; //'assign-user-list';
                     $showURL = "";
                     $editURL = route('users.edit', $row->id);

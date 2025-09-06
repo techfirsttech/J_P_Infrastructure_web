@@ -4,8 +4,9 @@
 <div class="row">
      <div class="col-12 mb-2">
           <h5 class="content-header-title float-start mb-0">{{ __('attendance::message.list') }}</h5>
+          <a href="{{ route('attendance.create') }}" role="button" class="btn btn-sm btn-primary float-end mx-1"><i class="fa fa-plus me-1"></i> {{ __('message.common.addNew') }}</a>
           @can('attendance-list')
-          <a href="{{ route('attendance.show',1) }}" role="button" class="btn btn-sm btn-primary float-end"><i class="fa fa-eye me-1"></i> Report</a>
+          <a href="{{ route('attendance.show',1) }}" role="button" class="btn btn-sm btn-success float-end mx-1"><i class="fa fa-eye me-1"></i> Report</a>
           @endcan
      </div>
      <div class="col-12 mb-2">
@@ -115,7 +116,7 @@
                     [15, 30, 50, 100, "All"]
                ],
                order: [
-                    [1, 'asc']
+                    [1, 'desc']
                ],
                columns: [{
                          data: 'id',

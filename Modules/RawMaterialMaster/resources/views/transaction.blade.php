@@ -114,12 +114,15 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Date</th>
                                 <th>Material Name</th>
                                 <th>Site</th>
                                 <th>Supervisor</th>
                                 <th>Quantity</th>
                                 <th>Price</th>
                                 <th>Type</th>
+                                <th>Remark</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -192,6 +195,10 @@
                     }
                 },
                 {
+                    data: 'date',
+                    name: 'date'
+                },
+                {
                     data: 'material_name',
                     name: 'raw_material_masters.material_name'
                 },
@@ -214,6 +221,16 @@
                 {
                     data: 'type',
                     name: 'type'
+                },
+                {
+                    data: 'remark',
+                    name: 'remark'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    sortable: false
                 },
 
             ],
@@ -251,8 +268,44 @@
     });
 
 
+    $(document).on('click', '.delete', function () {
+    var id = $(this).data('id');
+    var me = $(this);
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        confirmButtonText: "Yes, delete it!",
+        showCancelButton: true,
+    }).then(function (result) {
+        if (result.value) {
+
+            axios.delete(Route + '/' + id)
+                .then(function (response) {
+                    if (response.data.status_code == 200) {
+                        toastr.success(response.data.message, "Success");
+                        if ( me.attr('data-del-class') !== undefined) {
+                            $('.' + me.attr('data-del-class')).hide();
+                        }
+                        else {
+                            me.parent().parent().hide();
+                        }
+                    } else if (response.data.status_code == 201) {
+                        toastr.warning(response.data.message, "Warning");
+                    } else {
+                        toastr.error(response.data.message, "Error");
+                    }
+                })
+                .catch(function () {
+                    toastr.error("Something went wrong. Please try again.", "Error");
+                });
+        }
+    });
+});
+
+
 
 </script>
-    <script src="{{ asset('assets/custom/delete.js') }}"></script>
+    {{-- <script src="{{ asset('assets/custom/delete.js') }}"></script> --}}
     <script src="{{ asset('assets/custom/status.js') }}"></script>
 @endsection

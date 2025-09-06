@@ -48,6 +48,12 @@ class ExpenseMasterApiController extends Controller
             if ($role && $role->name === 'Supervisor') {
                 $query->where('expense_masters.supervisor_id', $user->id);
             }
+            // if ($role && $role->name === 'Supervisor') {
+            //     $query->where(function ($q) use ($user) {
+            //         $q->where('expense_masters.user_id', $user->id)
+            //             ->orWhere('expense_masters.supervisor_id', $user->id);
+            //     });
+            // }
 
             if ($request->filled('supervisor_id')) {
                 $query->where('expense_masters.supervisor_id', $request->supervisor_id);
@@ -106,86 +112,6 @@ class ExpenseMasterApiController extends Controller
                 // 'error' => $e->getMessage()
             ], 200);
         }
-
-        // try {
-        //     $query = ExpenseMaster::select(
-        //         'expense_masters.id',
-        //         'expense_masters.site_id',
-        //         'expense_masters.supervisor_id',
-        //         'expense_masters.expense_category_id',
-        //         'expense_masters.amount',
-        //         'expense_masters.document',
-        //         'expense_masters.remark',
-        //         'expense_masters.status',
-        //         'expense_masters.date',
-        //         DB::raw("DATE_FORMAT(expense_masters.date, '%d-%m-%Y') as date"),
-        //         'expense_categories.expense_category_name',
-        //         'users.name as supervisor_name',
-        //     )
-        //         ->leftJoin('site_masters', 'expense_masters.site_id', '=', 'site_masters.id')
-        //         ->leftJoin('users', 'users.id', '=', 'expense_masters.supervisor_id')
-        //         ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expense_masters.expense_category_id');
-
-        //     $user = Auth::user();
-        //     $role = $user->roles->first();
-
-        //     if ($role && $role->name === 'Supervisor') {
-        //         $query->where('expense_masters.supervisor_id', $user->id);
-        //     }
-
-        //     if ($request->filled('supervisor_id')) {
-        //         $query->where('expense_masters.supervisor_id', $request->supervisor_id);
-        //     }
-        //     if ($request->filled('site_id')) {
-        //         $query->where('expense_masters.site_id', $request->site_id);
-        //     }
-        //     if ($request->filled('expense_category_id')) {
-        //         $query->where('expense_masters.expense_category_id', $request->expense_category_id);
-        //     }
-        //     if ($request->filled('start_date') && $request->filled('end_date')) {
-        //         $startDate = Carbon::parse($request->start_date)->startOfDay();
-        //         $endDate = Carbon::parse($request->end_date)->endOfDay();
-        //         $query->whereBetween('expense_masters.created_at', [$startDate, $endDate]);
-        //     } elseif ($request->filled('start_date')) {
-        //         $startDate = Carbon::parse($request->start_date)->startOfDay();
-        //         $query->where('expense_masters.created_at', '>=', $startDate);
-        //     } elseif ($request->filled('end_date')) {
-        //         $endDate = Carbon::parse($request->end_date)->endOfDay();
-        //         $query->where('expense_masters.created_at', '<=', $endDate);
-        //     }
-
-        //     $totalAmount = (clone $query)->sum('expense_masters.amount');
-
-        //     $expenseMaster = $query->orderBy('expense_masters.id', 'DESC')->simplePaginate(30);
-
-
-        //     $totalAmount = (clone $query)->sum('expense_masters.amount');
-
-        //     // Format each item in the result
-        //     $formattedExpenseMaster = collect($expenseMaster->items())->map(function ($item) {
-        //         if (floor($item->amount) == $item->amount) {
-        //             $item->amount = (int) $item->amount;  // 100.000 → 100
-        //         } else {
-        //             $item->amount = (float) $item->amount;  // 100.50 → 100.5
-        //         }
-        //         return $item;
-        //     });
-
-        //     // Format total amount as well
-        //     $totalAmount = floor($totalAmount) == $totalAmount ? (int) $totalAmount : (float) $totalAmount;
-        //     return response([
-        //         'status' => true,
-        //         'message' => 'Expense Master List',
-        //         'total_amount' => $totalAmount,
-        //         'expense_master' => $formattedExpenseMaster
-        //     ], 200);
-        // } catch (\Exception $e) {
-        //     return response([
-        //         'status' => false,
-        //         'message' => 'Something went wrong. Please try again.',
-        //         // 'error' => $e->getMessage()
-        //     ], 200);
-        // }
     }
 
     public function create()
@@ -221,6 +147,8 @@ class ExpenseMasterApiController extends Controller
         DB::beginTransaction();
         try {
             $yearID = getSelectedYear();
+            $expenseCategoryName = ExpenseCategory::select('expense_category_name')->where('id', $request->expense_category_id)->value('expense_category_name');
+            // dd($expenseCategoryName);
             $expenseMaster = new ExpenseMaster();
             $expenseMaster->site_id = $request->site_id;
             // $expenseMaster->supervisor_id = $request->supervisor_id;
@@ -230,32 +158,18 @@ class ExpenseMasterApiController extends Controller
             $expenseMaster->remark = $request->remark;
             $expenseMaster->date = (!empty($request->date)) ? date('Y-m-d', strtotime($request->date)) : null;
             $expenseMaster->year_id = $yearID;
-            // if ($request->hasFile('document')) {
-            //     $file = $request->file('document');
-            //     $base64 = 'data:image/' . $file->extension() . ';base64,' . base64_encode(file_get_contents($file));
-            //     $uploadResponse = imageUploadFromBase64([
-            //         'base64' => $base64,
-            //         'fileName' => 'expense-document',
-            //         'folder' => 'upload/expense/documents',
-            //         'thumfolder' => 'upload/expense/documents/thumbs',
-            //     ]);
-            //     if ($uploadResponse) {
-            //         $expenseMaster->document = $uploadResponse['original'];
-            //     }
-            // }
-            if ($request->hasFile('document')) {
-                if ($expenseMaster->document) {
-                    @unlink(public_path('expense/document/' . $expenseMaster->document));
-                    @unlink(public_path('expense/document/thumbnail/' . $expenseMaster->document));
-                }
 
-                $expenseMaster->document = $this->uploadToPublicFolder(
+            if ($request->hasFile('document')) {
+                $upload = $this->uploadToPublicFolder(
                     $request->file('document'),
-                    $request->company_name,
+                    $expenseCategoryName,
                     'expense/document',
                     'expense/document/thumbnail'
                 );
+
+                $expenseMaster->document = $upload['original'];
             }
+
             $result = $expenseMaster->save();
 
             $paymentMaster = new PaymentMaster();
@@ -408,7 +322,7 @@ class ExpenseMasterApiController extends Controller
     public function expenseCategoryDropdown()
     {
         try {
-            $expenseCategoryDropdown = ExpenseCategory::select('id', 'expense_category_name')->orderBy('expense_category_name','asc')->get();
+            $expenseCategoryDropdown = ExpenseCategory::select('id', 'expense_category_name')->orderBy('expense_category_name', 'asc')->get();
             return response(['status' => true, 'message' => 'Expense Category Dropdown', 'expense_category_dropdown' => $expenseCategoryDropdown], 200);
         } catch (Exception $e) {
             dd($e);
@@ -599,10 +513,49 @@ class ExpenseMasterApiController extends Controller
         }
     }
 
-    private function uploadToPublicFolder($file, $imageName, $folder, $thumbFolder)
+    // private function uploadToPublicFolder($file, $imageName, $folder, $thumbFolder)
+    // {
+    //     $originalExtension = $file->getClientOriginalExtension();
+    //     $filename = Str::slug($imageName) . '-' . time() . '.' . $originalExtension;
+
+    //     $originalPath = public_path($folder);
+    //     $thumbPath = public_path($thumbFolder);
+
+    //     if (!File::exists($originalPath)) {
+    //         File::makeDirectory($originalPath, 0755, true);
+    //     }
+    //     if (!File::exists($thumbPath)) {
+    //         File::makeDirectory($thumbPath, 0755, true);
+    //     }
+
+    //     // Save original without modification
+    //     $file->move($originalPath, $filename);
+
+    //     // Generate thumbnail (always webp to save space)
+    //     $tempPath = $originalPath . '/' . $filename;
+    //     $src = imagecreatefromstring(file_get_contents($tempPath));
+
+    //     if (!$src) return $filename;
+
+    //     $trueColor = imagecreatetruecolor(200, 200);
+    //     list($width, $height) = getimagesize($tempPath);
+    //     imagecopyresampled($trueColor, $src, 0, 0, 0, 0, 200, 200, $width, $height);
+
+    //     // Save thumbnail as webp
+    //     $thumbName = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
+    //     imagewebp($trueColor, $thumbPath . '/' . $thumbName, 90);
+
+    //     imagedestroy($src);
+    //     imagedestroy($trueColor);
+
+    //     return $filename;
+    // }
+
+    private function uploadToPublicFolder($file, $fileName, $folder, $thumbFolder)
     {
-        $originalExtension = $file->getClientOriginalExtension();
-        $filename = Str::slug($imageName) . '-' . time() . '.' . $originalExtension;
+        $originalExtension = strtolower($file->getClientOriginalExtension());
+        $baseName = Str::slug($fileName) . '-' . time();
+        $filename = $baseName . '.' . $originalExtension;
 
         $originalPath = public_path($folder);
         $thumbPath = public_path($thumbFolder);
@@ -614,28 +567,68 @@ class ExpenseMasterApiController extends Controller
             File::makeDirectory($thumbPath, 0755, true);
         }
 
-        // Save original without modification
+        // Move file to original path
         $file->move($originalPath, $filename);
-
-        // Generate thumbnail (always webp to save space)
         $tempPath = $originalPath . '/' . $filename;
-        $src = imagecreatefromstring(file_get_contents($tempPath));
 
-        if (!$src) return $filename;
+        // If PDF → only save original (no thumbnail)
+        if ($originalExtension === 'pdf') {
+            return [
+                'original' => $filename,
+                'thumbnail' => null
+            ];
+        }
 
-        $trueColor = imagecreatetruecolor(200, 200);
+        // If Image → generate thumbnail
+        $src = null;
+        switch ($originalExtension) {
+            case 'jpg':
+            case 'jpeg':
+                $src = imagecreatefromjpeg($tempPath);
+                break;
+            case 'png':
+                $src = imagecreatefrompng($tempPath);
+                break;
+            case 'gif':
+                $src = imagecreatefromgif($tempPath);
+                break;
+            default:
+                $src = imagecreatefromstring(file_get_contents($tempPath));
+        }
+
+        if (!$src) {
+            return [
+                'original' => $filename,
+                'thumbnail' => null
+            ];
+        }
+
+        // Resize to 200x200
         list($width, $height) = getimagesize($tempPath);
-        imagecopyresampled($trueColor, $src, 0, 0, 0, 0, 200, 200, $width, $height);
+        $thumbWidth = 200;
+        $thumbHeight = 200;
+
+        $trueColor = imagecreatetruecolor($thumbWidth, $thumbHeight);
+
+        // Transparency support
+        imagealphablending($trueColor, false);
+        imagesavealpha($trueColor, true);
+
+        imagecopyresampled($trueColor, $src, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $width, $height);
 
         // Save thumbnail as webp
-        $thumbName = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
+        $thumbName = $baseName . '.webp';
         imagewebp($trueColor, $thumbPath . '/' . $thumbName, 90);
 
         imagedestroy($src);
         imagedestroy($trueColor);
 
-        return $filename;
+        return [
+            'original' => $filename,
+            'thumbnail' => $thumbName
+        ];
     }
+
 
     public function paymentLedgerPdf(Request $request)
     {
@@ -647,6 +640,7 @@ class ExpenseMasterApiController extends Controller
                 'payment_masters.model_type',
                 'payment_masters.model_id',
                 'payment_masters.amount',
+                'payment_masters.remark',
                 DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
                 'payment_masters.status',
                 'site_masters.site_name',

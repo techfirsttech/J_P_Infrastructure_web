@@ -265,4 +265,25 @@ class SiteMasterApiController extends Controller
             return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
         }
     }
+    public function otherSiteDropdown(Request $request)
+    {
+        try {
+           $userId = Auth::id();
+
+        $query = SiteMaster::select('id', 'site_name');
+
+        if ($userId) {
+            $query->whereNotIn('id', function ($subQuery) use ($userId) {
+                $subQuery->select('site_master_id')
+                    ->from('site_supervisors')
+                    ->where('user_id', $userId);
+            });
+        }
+
+        $siteDropdown = $query->orderBy('site_name', 'asc')->get();
+            return response(['status' => true, 'message' => 'Site Dropdown', 'site_dropdown' => $siteDropdown], 200);
+        } catch (Exception $e) {
+            return response(['status' => false, 'message' => 'Something went wrong. Please try again.'], 200);
+        }
+    }
 }

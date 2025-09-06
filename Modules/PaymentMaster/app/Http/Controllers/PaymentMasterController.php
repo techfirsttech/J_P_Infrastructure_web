@@ -12,6 +12,7 @@ use Modules\ExpenseMaster\Models\ExpenseMaster;
 use Modules\IncomeMaster\Models\IncomeMaster;
 use Modules\PaymentMaster\Models\PaymentMaster;
 use Modules\PaymentMaster\Models\PaymentTransfer;
+use Modules\SiteMaster\Models\SiteMaster;
 use Modules\User\Models\User;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -87,9 +88,10 @@ class PaymentMasterController extends Controller
                 ->make(true);
         } else {
             $supervisor = User::select('id', 'name')->get();
+            $site = SiteMaster::select('id','site_name')->get();
             $toSupervisor = User::select('id', 'name')->get();
             $to_supervisors = User::select('id', 'name')->where('id', '!=', Auth::id())->get();
-            return view('paymentmaster::index', compact('supervisor', 'toSupervisor', 'to_supervisors'));
+            return view('paymentmaster::index', compact('supervisor', 'toSupervisor', 'to_supervisors','site'));
         }
     }
 
@@ -127,7 +129,8 @@ class PaymentMasterController extends Controller
         try {
             $yearID = getSelectedYear();
             $expenseMaster = new ExpenseMaster();
-            $expenseMaster->supervisor_id = Auth::id();
+            // $expenseMaster->supervisor_id = Auth::id();
+            $expenseMaster->supervisor_id = $request->supervisor_id;
             $expenseMaster->amount = $request->amount;
             $expenseMaster->remark = $request->remark;
             $expenseMaster->date = now()->toDateString();
@@ -147,6 +150,7 @@ class PaymentMasterController extends Controller
             $paymentMaster->save();
 
             $incomeMaster = new IncomeMaster();
+            $incomeMaster->site_id = $request->site_id;
             $incomeMaster->supervisor_id = $request->to_supervisor_id;
             $incomeMaster->amount = $request->amount;
             $incomeMaster->remark = $request->remark;
@@ -157,6 +161,7 @@ class PaymentMasterController extends Controller
 
 
             $paymentMaster = new PaymentMaster();
+            $expenseMaster->site_id = $incomeMaster->site_id;
             $paymentMaster->supervisor_id = $incomeMaster->supervisor_id;
             $paymentMaster->model_type = "Income";
             $paymentMaster->model_id = $incomeMaster->id;
@@ -169,7 +174,9 @@ class PaymentMasterController extends Controller
             $paymentMaster->save();
 
             $paymentTransfer = new PaymentTransfer();
-            $paymentTransfer->supervisor_id = Auth::id();
+            // $paymentTransfer->supervisor_id = Auth::id();
+            $paymentTransfer->supervisor_id = $request->supervisor_id;
+            $paymentTransfer->site_id = $request->site_id;
             $paymentTransfer->to_supervisor_id = $request->to_supervisor_id;
             $paymentTransfer->amount = $incomeMaster->amount;
             $paymentTransfer->remark = $request->remark;

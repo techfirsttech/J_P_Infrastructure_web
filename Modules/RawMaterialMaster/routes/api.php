@@ -16,4 +16,6 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::delete('raw-material-transaction-delete', [RawMaterialMasterInOutApiController::class, 'destroy']);
     Route::post('raw-material-stock-list', [RawMaterialMasterInOutApiController::class, 'materialStock']);
 
+    Route::post('raw-material-add', [RawMaterialMasterInOutApiController::class, 'save']);
+
 });

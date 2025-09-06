@@ -23,5 +23,6 @@
     "Labour": true,
     "Attendance": true,
     "Contractor": true,
-    "StockTransfer": true
+    "StockTransfer": true,
+    "Party": true
 }

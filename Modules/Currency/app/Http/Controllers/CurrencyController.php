@@ -66,9 +66,9 @@ class CurrencyController extends Controller
             })],
             'currency_symbol' => ['required']
         ], [
-            'currency_symbol.required' => __('storagecondition::message.enter_priority'),
-            'currency_name.required' => __('storagecondition::message.enter_name'),
-            'currency_name.unique' => __('storagecondition::message.enter_unique_name')
+            'currency_symbol.required' => __('currency::message.enter_priority'),
+            'currency_name.required' => __('currency::message.enter_name'),
+            'currency_name.unique' => __('currency::message.enter_unique_name')
         ]);
         if ($validator->fails()) {
             return response()->json(['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()]);

@@ -26,6 +26,8 @@ return [
     'select_site' => 'Select Site',
     'select_supervisor' => 'Select Supervisor',
     'date' => 'Date',
+    'party' => 'Party',
+    'select_date' => 'Select Date',
 
 
 
