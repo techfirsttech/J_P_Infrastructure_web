@@ -447,6 +447,9 @@ class ExpenseMasterController extends Controller
                 ->addColumn('debit', function ($row) {
                     return ($row->status == 'Debit') ? number_format($row->amount, 2) : '-';
                 })
+                // ->editColumn('site_id', function ($row) {
+                //     return !is_null($row->site_name) ? $row->site_name . ' | ' . $row->supervisor_name . '' : $row->supervisor_name ;
+                // })
                 ->escapeColumns([])
                 ->make(true);
         } else {
