@@ -17,7 +17,6 @@
         }
 
         body {
-            /* margin-top: 4cm; */
             margin-top: 1cm;
             margin-left: 0cm;
             margin-right: 0cm;
@@ -75,22 +74,8 @@
 </head>
 
 <body>
-
-
     <main>
         <h2 class="text-center pb-10">Payment Ledger</h2>
-        {{-- <table class="border-tbl ">
-            <tr>
-                <th width="50%">
-                    <h3>Site : </h3>
-                </th>
-                <th width="50%">
-                    <h3>Supervisor : </h3>
-                </th>
-            </tr>
-
-        </table> --}}
-
         <table class="border-tbl margin-top-25">
             <thead>
                 <tr>
@@ -105,7 +90,8 @@
             </thead>
 
             <tbody>
-                @foreach ($payments as $payKey => $payment)
+                @php $totalExpense = $totalIncome = 0; @endphp
+                @foreach ($query as $payKey => $payment)
                     <tr class="vertical-top">
                         <td class="text-center">{{ $payKey + 1 }}</td>
                         <td>{{ $payment->date ?? '' }}</td>
@@ -114,14 +100,16 @@
                         <td>{{ $payment->remark ?? '' }}</td>
                         <td class="text-success text-center">
                             @if (strtolower($payment->status) == 'credit')
-                                <b>{{ $payment->amount }}</b>
+                                <b>{{ number_format($payment->amount, 2) }}</b>
+                                @php $totalIncome += $payment->amount; @endphp
                             @else
                                 -
                             @endif
                         </td>
                         <td class="text-danger text-center ">
                             @if (strtolower($payment->status) == 'debit')
-                                <b>{{ $payment->amount }}</b>
+                                <b>{{ number_format($payment->amount, 2) }}</b>
+                                @php $totalExpense += $payment->amount; @endphp
                             @else
                                 -
                             @endif
@@ -131,16 +119,12 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="5" class="text-end"> Closing Balance : {{ $closing_balance }}</th>
-                    <th class="text-end">Total Income : {{ $total_income }}</th>
-                    <th class="text-end">Total Expense : {{ $total_expense }}</th>
+                    <th colspan="5" class="text-nowarp text-end"> Closing Balance : {{ number_format($totalIncome - $totalExpense, 2) }}</th>
+                    <th class="text-nowarp text-end">Total Inc. : {{ number_format($totalIncome, 2) }}</th>
+                    <th class="text-nowarp text-end">Total Exp. : {{ number_format($totalExpense, 2) }}</th>
                 </tr>
             </tfoot>
-
-
         </table>
-
     </main>
 </body>
-
 </html>

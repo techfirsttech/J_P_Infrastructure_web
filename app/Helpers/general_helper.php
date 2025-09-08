@@ -395,3 +395,8 @@ function role_super_admin()
 {
     return (Auth::user()->roles[0]->name == 'Super Admin') ? true : false;
 }
+
+function role_supervisor()
+{
+    return (Auth::user()->roles[0]->name == 'Supervisor') ? true : false;
+}

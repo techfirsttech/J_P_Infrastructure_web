@@ -1,6 +1,6 @@
 // start filter inside start end date used
-if ($("#s_date").length != 0 && $("#e_date").length != 0) {
-    var startPicker = flatpickr("#s_date", {
+if ($("#filter_form #s_date").length != 0 && $("#filter_form #e_date").length != 0) {
+    var startPicker = flatpickr("#filter_form #s_date", {
         altInput: true,
         altFormat: 'd-m-Y',
         dateFormat: 'Y-m-d',
@@ -10,7 +10,7 @@ if ($("#s_date").length != 0 && $("#e_date").length != 0) {
         }
     });
 
-    var endPicker = flatpickr("#e_date", {
+    var endPicker = flatpickr("#filter_form #e_date", {
         altInput: true,
         altFormat: 'd-m-Y',
         dateFormat: 'Y-m-d',
@@ -23,7 +23,7 @@ if ($("#s_date").length != 0 && $("#e_date").length != 0) {
 // end filter inside start end date used
 
 // start filter
-if ($(".search").length != 0) {
+if ($("#filter_form .search").length != 0) {
     $(document).on('click', '.search', function () {
         table.draw();
     });
@@ -31,16 +31,20 @@ if ($(".search").length != 0) {
 // end filter
 
 // start clear filter
-if ($(".reset").length != 0) {
+if ($("#filter_form .reset").length != 0) {
     $(document).on('click', '.reset', function () {
         $('#filter_form').trigger('reset');
-        $('.select2').val('All').trigger('change');
-        if ($("#s_date").length != 0 && $("#e_date").length != 0) {
+        $('#filter_form .select2').val('All').trigger('change');
+        if ($("#filter_form #s_date").length != 0 && $("#filter_form #e_date").length != 0) {
             startPicker.clear();
             startPicker.set('maxDate', null);
 
             endPicker.clear();
             endPicker.set('minDate', null);
+        }
+        if ($("#filter_form .export").length != 0) {
+            $("#filter_form .export").html('<i class="fa fa-download"></i>');
+            $("#filter_form .export").attr('disabled', false);
         }
         table.draw();
     });
@@ -48,13 +52,10 @@ if ($(".reset").length != 0) {
 // end clear filter
 
 // start filter after excel export
-if ($(".export").length != 0) {
+if ($("#filter_form .export").length != 0) {
     $(document).on('click', '.export', function () {
-        console.info('a');
         var route = $(this).attr('data-route');
         if (route != undefined) {
-        console.info('b');
-
             var me = $(this);
             me.html('<i class="fa fa-spinner fa-spin"></i>');
             me.attr('disabled', true)
@@ -71,7 +72,9 @@ if ($(".export").length != 0) {
                     } else if (response.status_code == 404) {
                         toastr.warning(response.message, "Warning");
                     } else {
-                        window.location.href = response.download_url;
+                        //open in new tab
+                        window.open(response.download_url, '_blank');
+                        // window.location.href = response.download_url;
                     }
                 },
                 error: function () {

@@ -1,90 +1,92 @@
 @extends('layouts.app')
 @section('title', __('expensemaster::message.ledger'))
 @section('content')
-    <div class="row mb-3">
-
-        <div class="col-md-3 form-group custom-input-group">
-            <label for="filter_site_id" class="form-label">Site <span class="text-danger">*</span></label>
-            <select id="filter_site_id" name="filter_site_id" class="select2 form-select"
-                data-placeholder="{{ __('message.common.select') }}">
-                <option value="">All Sites</option>
-                @foreach ($sites as $site)
-                    <option value="{{ $site->id }}">{{ $site->site_name }}</option>
-                @endforeach
-            </select>
-            <span class="invalid-feedback d-block" id="error_filter_site_id" role="alert"></span>
-        </div>
-        <div class="col-md-3 form-group custom-input-group">
-            <label for="filter_supervisor_id" class="form-label">Supervisor<span class="text-danger">*</span></label>
-            <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select"
-                data-placeholder="{{ __('message.common.select') }}">
-                <option value="">All Supervisors</option>
-                @foreach ($supervisors as $supervisor)
-                    <option value="{{ $supervisor->id }}">{{ $supervisor->name }}</option>
-                @endforeach
-            </select>
-            <span class="invalid-feedback d-block" id="error_filter_supervisor_id" role="alert"></span>
-        </div>
-
-        <div class="col-md-2 form-group custom-input-group">
-            <label class="form-label" for="filter_start_date">Start Date</label>
-            <input type="text" class="form-control flatpickr-date" name="filter_start_date" id="filter_start_date"
-                placeholder="End Date" value="">
-        </div>
-        <div class="col-md-2 form-group custom-input-group">
-            <label class="form-label" for="filter_end_date">End Date</label>
-            <input type="text" class="form-control flatpickr-date" name="filter_end_date" id="filter_end_date"
-                placeholder="End Date" value="">
-        </div>
-        <div class="col-md-2 text-end pt-5">
-            <a class="btn btn-outline-warning px-3 ledger-pdf" href="javascript:void(0);">
-                <i class="fa fa-file-pdf"></i>
-            </a>
-            {{-- <button class="btn btn-warning px-3 pdf-view" id="pdf_button"><i class="fa fa-file-pdf"></i></button> --}}
-            <button class="btn btn-outline-primary px-3" id="filter_button"><i class="fa fa-search"></i></button>
-            <button class="btn btn-outline-secondary px-3" id="reset_button"><i class="fa fa-refresh"></i></button>
-        </div>
+<div class="row">
+    <div class="col-12 mb-2">
+        <h5 class="content-header-title float-start mb-0">{{ __('expensemaster::message.ledger') }}</h5>
     </div>
 
-    <div class="row">
-        <div class="col-12 mb-2">
-            <h5 class="content-header-title float-start mb-0">{{ __('expensemaster::message.ledger') }}</h5>
-        </div>
-        <div class="col-12">
-            <div class="card p-1">
-                <div class="card-body">
-                    <table id="table" class="datatables-basic table table-hover">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Date</th>
-                                <th>{{ __('expensemaster::message.site') }}</th>
-                                <th>{{ __('expensemaster::message.supervisor') }}</th>
-                                <th>{{ __('expensemaster::message.remark') }}</th>
-                                <th class="text-dark">{{ __('expensemaster::message.credit') }}</th>
-                                <th class="text-dark">{{ __('expensemaster::message.debit') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                        <tfoot class="bg-light">
-                            <tr>
-                                <th colspan="3" class="text-start ms-2 ps-3"><b>Closing Balance : </b><b class=" total-balance"> 0.00</b></th>
-                                <th class="text-end pe-5"><b>Total</b></th>
-                                <th class=""><b></b></th>
-                                <th class=" text-end pe-5"><b class=" total_credit">0.00</b></th>
-                                <th class=" text-end pe-5"><b class=" total_debit">0.000</b></th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+    <div class="col-12 mb-2">
+        <div class="card">
+            <div class="card-body">
+                <form id="filter_form" action="javascript:void(0)" method="POST">
+                    @csrf
+                    <div class="row g-2 pt-25 align-items-end">
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label class="form-label" for="s_date">{{ __('message.common.start_date') }}</label>
+                            <input type="text" class="form-control flatpickr" name="s_date" id="s_date" value="" autocomplete="off" placeholder="{{ __('message.common.start_date') }}" readonly>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label class="form-label" for="e_date">{{ __('message.common.end_date') }}</label>
+                            <input type="text" class="form-control flatpickr" name="e_date" id="e_date" value="" autocomplete="off" placeholder="{{ __('message.common.end_date') }}" readonly>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label for="filter_site_id" class="form-label">Site</label>
+                            <select id="filter_site_id" name="filter_site_id" class="select2 form-select">
+                                <option value="All">{{ __('message.common.all') }}</option>
+                                @foreach ($siteMaster as $site)
+                                <option value="{{ $site->id }}">{{ $site->site_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label for="filter_supervisor_id" class="form-label">Supervisor</label>
+                            <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
+                                <option value="All">{{ __('message.common.all') }}</option>
+                                @foreach ($supervisor as $supervisors)
+                                <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            @php $search = true; $reset = true; $export = route('ledger-pdf'); @endphp
+                            {{ view('layouts.filter-button', compact('search', 'reset', 'export')) }}
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <div class="col-12">
+        <div class="card p-1">
+            <div class="card-body">
+                <table id="table" class="datatables-basic table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>{{ __('expensemaster::message.site') }}</th>
+                            <th>{{ __('expensemaster::message.supervisor') }}</th>
+                            <th>{{ __('expensemaster::message.remark') }}</th>
+                            <th class="text-dark">{{ __('expensemaster::message.credit') }}</th>
+                            <th class="text-dark">{{ __('expensemaster::message.debit') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot class="bg-light">
+                        <tr>
+                            <th colspan="3" class="text-start ms-2 ps-3"><b>Closing Balance : </b><b class=" total-balance"> 0.00</b></th>
+                            <th class="text-end pe-5"><b>Total</b></th>
+                            <th class=""><b></b></th>
+                            <th class=" text-end pe-5"><b class=" total_credit">0.00</b></th>
+                            <th class=" text-end pe-5"><b class=" total_debit">0.000</b></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('pagescript')
-    <script type="application/javascript">
+<script type="application/javascript">
     'use strict';
     const URL = "{{route('payment-ledger')}}";
     var table = '';
@@ -95,8 +97,8 @@
                 data: function(d) {
                     d.site_id = $('#filter_site_id').val();
                     d.supervisor_id = $('#filter_supervisor_id').val();
-                    d.start_date = $('#filter_start_date').val();
-                    d.end_date = $('#filter_end_date').val();
+                    d.s_date = $('#s_date').val();
+                    d.e_date = $('#e_date').val();
                 }
             },
             processing: true,
@@ -134,8 +136,6 @@
                         }
                     }
                 },
-
-
                 {
                     data: 'date',
                     name: 'date'
@@ -146,7 +146,7 @@
                 },
                 {
                     data: 'supervisor_name',
-                    name: 'users.name'
+                    name: 'supervisor.name'
                 },
                 {
                     data: 'remark',
@@ -192,7 +192,6 @@
 
                 $('.total-balance').html(totalCredit - totalDebit);
             },
-
             initComplete: function(settings, json) {
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
@@ -218,112 +217,6 @@
             }
         });
     });
-
-    $('#filter_button').click(function() {
-        table.ajax.reload();
-    });
-
-    $(document).ready(function() {
-        flatpickr('.flatpickr-date', {
-            enableTime: false,
-            dateFormat: 'd-m-Y',
-            defaultDate: '',
-            maxDate: new Date(),
-        });
-    });
-
-
-    $('#reset_button').click(function() {
-        $('#filter_site_id').val('');
-        $('#filter_supervisor_id').val('');
-        $('#filter_start_date').val('');
-        $('#filter_end_date').val('');
-        table.ajax.reload();
-    });
-
-    $(document).on('click', '.status', function() {
-        let status = $(this).data('value');
-        let id = $(this).data('id');
-        var url = "{{route('expense-status-change')}}";
-        $.ajax({
-            type: "POST",
-            url: url,
-            dataType: 'json',
-            data: {
-                "_token": "{{ csrf_token() }}",
-                "id": id,
-                "status": status,
-            },
-            success: function(response) {
-                if (response.status == true) {
-                    table.ajax.reload(null, false);
-                    toastr.success("Status Updated Successfully", "success'");
-                } else {
-                    toastr.error("Something Went Wrong. Please Try Again.'", "error");
-                }
-            },
-            error: function(error) {
-                toastr.error("Something Went Wrong. Please Try Again.'", "error");
-                $(document.body).css('pointer-events', '');
-            }
-        });
-    });
-
-    $(document).on('click', '.ledger-pdf', function() {
-        let pdfId = $(this).attr('data-id');
-         let filter_start_date = $('#filter_start_date').val();
-        let filter_end_date = $('#filter_end_date').val();
-        let filter_site_id = $('#filter_site_id').val();
-        let filter_supervisor_id = $('#filter_supervisor_id').val();
-        let obj = $(this);
-        if (pdfId != '') {
-            $.ajax({
-                type: "POST",
-                url: "{{route('ledger-pdf')}}",
-                // data: {
-                //     "id": pdfId,
-                //     "_token": "{{ csrf_token() }}"
-                // },
-                data: {
-                    filter_start_date: filter_start_date,
-                    filter_end_date: filter_end_date,
-                    filter_site_id: filter_site_id,
-                    filter_supervisor_id: filter_supervisor_id,
-                    "_token": "{{ csrf_token() }}"
-                },
-                dataType: 'json',
-                cache: false,
-                beforeSend: function() {
-                    $("#error_name").html('');
-                    obj.html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Wait`);
-                    obj.attr('disabled', true);
-                },
-                success: function(response) {
-                    obj.html('<i class="fa-file-pdf"></i> <span> PDF </span>');
-                    obj.attr('disabled', false);
-                    if (response.status_code == 200) {
-                        const link = document.createElement('a');
-                        link.href = response.file_url;
-                        link.download = response.file_name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        toastr.success(response.message, "Success");
-                    } else {
-                        toastr.error(response.message, "Error");
-                    }
-                },
-                error: function(error) {
-                    obj.html('<i class="fa-file-pdf"></i> <span> PDF </span>');
-                    obj.attr('disabled', false);
-                    toastr.error("An error occurred while generating the PDF", "Error");
-                }
-            });
-        } else {
-            toastr.error("Pdf not generated", "Error");
-        }
-    });
 </script>
-    <script src="{{ asset('assets/custom/save.js') }}"></script>
-    <script src="{{ asset('assets/custom/delete.js') }}"></script>
+<script src="{{ asset('assets/custom/filter.js') }}"></script>
 @endsection

@@ -9,7 +9,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('expense-status-change', [ExpenseMasterController::class, 'statusChange'])->name('expense-status-change');
 
     Route::get('payment-ledger', [ExpenseMasterController::class, 'paymentLedger'])->name('payment-ledger');
-    Route::post('ledger-pdf', [ExpenseMasterController::class, 'paymentLedgerPdf'])->name('ledger-pdf');
+    Route::get('ledger-pdf', [ExpenseMasterController::class, 'paymentLedgerPdf'])->name('ledger-pdf');
 
 
 });

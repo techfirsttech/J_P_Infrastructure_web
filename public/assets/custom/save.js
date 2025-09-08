@@ -36,7 +36,7 @@ $(document).on('click', '.save', function (e) {
                     $(".save").html("Submit");
                     $(".save").attr('disabled', false);
                     toastr.warning(response.message, "Warning");
-                } else if (response.status_code == 201) {
+                } else if (response.status_code == 201 || response.status_code == 422) {
                     $(".save").html("Submit");
                     $(".save").attr('disabled', false);
                     $.each(response.errors, function (key, value) {
