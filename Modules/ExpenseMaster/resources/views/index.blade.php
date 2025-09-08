@@ -1,63 +1,67 @@
 @extends('layouts.app')
 @section('title', __('expensemaster::message.expensemaster'))
 @section('content')
-<div class="row mb-3">
-
-    <div class="col-md-2 form-group custom-input-group">
-        <label for="filter_site_id" class="form-label">Site <span class="text-danger">*</span></label>
-        <select id="filter_site_id" name="filter_site_id" class="select2 form-select">
-            <option value="">-- All --</option>
-            @foreach ($siteMaster as $site)
-            <option value="{{ $site->id }}">{{ $site->site_name }}</option>
-            @endforeach
-        </select>
-        <span class="invalid-feedback d-block" id="error_filter_site_id" role="alert"></span>
-    </div>
-    <div class="col-md-2 form-group custom-input-group">
-        <label for="filter_supervisor_id" class="form-label">Supervisor<span class="text-danger">*</span></label>
-        <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
-            <option value="">-- All --</option>
-            @foreach ($supervisor as $supervisors)
-            <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
-            @endforeach
-        </select>
-        <span class="invalid-feedback d-block" id="error_filter_supervisor_id" role="alert"></span>
-    </div>
-    <div class="col-md-2 form-group custom-input-group">
-        <label for="filter_expense_category_id" class="form-label">Category<span class="text-danger">*</span></label>
-        <select id="filter_expense_category_id" name="filter_expense_category_id" class="select2 form-select">
-            <option value="">-- All --</option>
-            @foreach ($expenseCategory as $category)
-            <option value="{{ $category->id }}">{{ $category->expense_category_name }}</option>
-            @endforeach
-        </select>
-        <span class="invalid-feedback d-block" id="error_filter_expense_category_id role=" alert"></span>
-    </div>
-
-    <div class="col-md-2 form-group custom-input-group">
-        <label class="form-label" for="filter_start_date">Start Date</label>
-        <input type="text" class="form-control flatpickr-date" name="filter_start_date" id="filter_start_date"
-            placeholder="End Date" value="">
-    </div>
-    <div class="col-md-2 form-group custom-input-group">
-        <label class="form-label" for="filter_end_date">End Date</label>
-        <input type="text" class="form-control flatpickr-date" name="filter_end_date" id="filter_end_date"
-            placeholder="End Date" value="">
-    </div>
-    <div class="col-md-2 text-end pt-5">
-        <button class="btn btn-primary px-3" id="filter_button"><i class="fa fa-search"></i></button>
-        <button class="btn btn-secondary px-3" id="reset_button"><i class="fa fa-refresh"></i></button>
-    </div>
-</div>
-
 <div class="row">
     <div class="col-12 mb-2">
         <h5 class="content-header-title float-start mb-0">{{ __('expensemaster::message.list') }}</h5>
         @can('income-master-create')
-        <button type="button" data-bs-toggle="modal" data-bs-target="#inlineModal"
-            class="btn btn-sm btn-primary new-create float-end"><i
-                class="fa fa-plus me-25"></i>{{ __('message.common.addNew') }}</button>
+        <button type="button" data-bs-toggle="modal" data-bs-target="#inlineModal" class="btn btn-sm btn-primary new-create float-end"><i class="fa fa-plus me-25"></i>{{ __('message.common.addNew') }}</button>
         @endcan
+    </div>
+    <div class="col-12 mb-2">
+        <div class="card">
+            <div class="card-body">
+                <form id="filter_form" action="javascript:void(0)" method="POST">
+                    @csrf
+                    <div class="row g-2 pt-25 align-items-end">
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label class="form-label" for="s_date">{{ __('message.common.start_date') }}</label>
+                            <input type="text" class="form-control flatpickr" name="s_date" id="s_date" value="" autocomplete="off" placeholder="{{ __('message.common.start_date') }}" readonly>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label class="form-label" for="e_date">{{ __('message.common.end_date') }}</label>
+                            <input type="text" class="form-control flatpickr" name="e_date" id="e_date" value="" autocomplete="off" placeholder="{{ __('message.common.end_date') }}" readonly>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label for="filter_expense_category_id" class="form-label">Category</label>
+                            <select id="filter_expense_category_id" name="filter_expense_category_id" class="select2 form-select">
+                                <option value="All">{{ __('message.common.all') }}</option>
+                                @foreach ($expenseCategory as $category)
+                                <option value="{{ $category->id }}">{{ $category->expense_category_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label for="filter_site_id" class="form-label">Site</label>
+                            <select id="filter_site_id" name="filter_site_id" class="select2 form-select">
+                                <option value="All">{{ __('message.common.all') }}</option>
+                                @foreach ($siteMaster as $site)
+                                <option value="{{ $site->id }}">{{ $site->site_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label for="filter_supervisor_id" class="form-label">Supervisor</label>
+                            <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
+                                <option value="All">{{ __('message.common.all') }}</option>
+                                @foreach ($supervisor as $supervisors)
+                                <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            @php $search = true; $reset = true; $export = false; @endphp
+                            {{ view('layouts.filter-button', compact('search', 'reset', 'export')) }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <div class="col-12">
         <div class="card p-1">
@@ -96,7 +100,6 @@
                 <form id="form" action="javascript:void(0);" method="POST">
                     @csrf
                     <div class="row">
-
                         <div class="col-12 col-sm-12 col-md-6 col-lg-6 form-group custom-input-group">
                             <input type="hidden" name="id" id="id" value="">
                             <label for="site_id" class="form-label">{{ __('expensemaster::message.site') }}</label>
@@ -104,78 +107,62 @@
                                 <option value="">{{ __('message.common.select') }}</option>
                                 @if ($siteMaster->count() > 0)
                                 @foreach ($siteMaster as $value)
-                                <option value="{{ $value->id }}">{{ $value->site_name }}
-                                </option>
+                                <option value="{{ $value->id }}">{{ $value->site_name }}</option>
                                 @endforeach
                                 @endif
                             </select>
                             <span class="invalid-feedback d-block" id="error_site_id" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-6 col-lg-6 form-group custom-input-group">
-                            <label for="supervisor_id"
-                                class="form-label">{{ __('expensemaster::message.supervisor') }}</label>
+                            <label for="supervisor_id" class="form-label">{{ __('expensemaster::message.supervisor') }}</label>
                             <select id="supervisor_id" name="supervisor_id" class="select2 form-select">
                                 <option value="">{{ __('message.common.select') }}</option>
                                 @if ($supervisor->count() > 0)
                                 @foreach ($supervisor as $value)
-                                <option value="{{ $value->id }}">{{ $value->name }}
-                                </option>
+                                <option value="{{ $value->id }}">{{ $value->name }}</option>
                                 @endforeach
                                 @endif
                             </select>
                             <span class="invalid-feedback d-block" id="error_supervisor_id" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-6 col-lg-6 form-group custom-input-group">
-                            <label for="expense_category_id"
-                                class="form-label">{{ __('expensemaster::message.expenseCategory') }}</label>
+                            <label for="expense_category_id" class="form-label">{{ __('expensemaster::message.expenseCategory') }}</label>
                             <select id="expense_category_id" name="expense_category_id" class="select2 form-select">
                                 <option value="">{{ __('message.common.select') }}</option>
                                 @if ($expenseCategory->count() > 0)
                                 @foreach ($expenseCategory as $value)
-                                <option value="{{ $value->id }}">{{ $value->expense_category_name }}
-                                </option>
+                                <option value="{{ $value->id }}">{{ $value->expense_category_name }}</option>
                                 @endforeach
                                 @endif
                             </select>
-                            <span class="invalid-feedback d-block" id="error_expense_category_id"
-                                role="alert"></span>
+                            <span class="invalid-feedback d-block" id="error_expense_category_id" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-6 col-lg-6 form-group custom-input-group">
-                            <label class="form-label" for="amount">{{ __('expensemaster::message.amount') }} <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="amount" id="amount"
-                                placeholder="{{ __('expensemaster::message.amount') }}">
+                            <label class="form-label" for="amount">{{ __('expensemaster::message.amount') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="amount" id="amount" placeholder="{{ __('expensemaster::message.amount') }}">
                             <span class="invalid-feedback d-block" id="error_amount" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-6 col-lg-6 form-group custom-input-group">
                             <label class="form-label" for="date"> Date</label>
-                            <input type="text" class="form-control flatpickr-date" name="date" id="date"
-                                placeholder="Date" value="">
-                            <span class="invalid-feedback d-block" id="error_date"
-                                role="alert">{{ $errors->first('date') }}</span>
+                            <input type="text" class="form-control flatpickr-date" name="date" id="date" placeholder="Date" value="">
+                            <span class="invalid-feedback d-block" id="error_date" role="alert">{{ $errors->first('date') }}</span>
                         </div>
 
                         <div class="col-12 col-sm-8 col-md-6 col-lg-6 form-group custom-input-group">
-                            <label class="form-label"
-                                for="document">{{ __('expensemaster::message.document') }}</label>
-                            <input type="file" class="form-control" name="document" id="document"
-                                placeholder="Document" value="{{ old('document') }}">
+                            <label class="form-label" for="document">{{ __('expensemaster::message.document') }}</label>
+                            <input type="file" class="form-control" name="document" id="document" placeholder="Document" value="{{ old('document') }}" accept="image/*,application/pdf">
                             <span class="invalid-feedback d-block" id="error_document" role="alert"></span>
                         </div>
 
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
-                            <label class="form-label" for="remark">{{ __('expensemaster::message.remark') }}
-                            </label>
+                            <label class="form-label" for="remark">{{ __('expensemaster::message.remark') }}</label>
                             <textarea class="form-control" name="remark" id="remark"> </textarea>
-                            <span class="invalid-feedback d-block" id="error_remark"
-                                role="alert">{{ $errors->first('remark') }}</span>
+                            <span class="invalid-feedback d-block" id="error_remark" role="alert">{{ $errors->first('remark') }}</span>
                         </div>
 
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 mt-1">
-                            <button type="button" data-bs-dismiss="modal" aria-label="Close"
-                                class="btn btn-sm btn-label-secondary float-start">{{ __('message.common.cancel') }}</button>
-                            <button type="submit" class="btn btn-sm btn-primary float-end save"
-                                data-route="{{ route('expensemaster.store') }}">{{ __('message.common.submit') }}</button>
+                            <button type="button" data-bs-dismiss="modal" aria-label="Close" class="btn btn-sm btn-label-secondary float-start">{{ __('message.common.cancel') }}</button>
+                            <button type="submit" class="btn btn-sm btn-primary float-end save" data-route="{{ route('expensemaster.store') }}">{{ __('message.common.submit') }}</button>
                         </div>
                     </div>
                 </form>
@@ -197,9 +184,9 @@
                 data: function(d) {
                     d.site_id = $('#filter_site_id').val();
                     d.supervisor_id = $('#filter_supervisor_id').val();
-                    d.supervisor_id = $('#filter_expense_category_id').val();
-                    d.start_date = $('#filter_start_date').val();
-                    d.end_date = $('#filter_end_date').val();
+                    d.expense_category_id = $('#filter_expense_category_id').val();
+                    d.s_date = $('#s_date').val();
+                    d.e_date = $('#e_date').val();
                 }
             },
             processing: true,
@@ -252,7 +239,7 @@
                 },
                 {
                     data: 'supervisor_name',
-                    name: 'users.name'
+                    name: 'supervisor.name'
                 },
                 {
                     data: 'amount',
@@ -303,10 +290,11 @@
             }
         });
     });
+    
     $("#inlineModal").on("hidden.bs.modal", function(e) {
         $(this).find('form').trigger('reset');
         $("#id").val("");
-        $('.select2').val('').trigger('change');
+        $('#site_id, #supervisor_id, #expense_category_id').val('').trigger('change');
         $(".invalid-feedback,.custom-error").html("");
         $(".save").html("Submit");
         $(".save").attr('disabled', false);
@@ -413,20 +401,6 @@
         }
     });
 
-    //  $(document).ready(function() {
-    //     flatpickr('.flatpickr-date', {
-    //         enableTime: false,
-    //         dateFormat: 'd-m-Y',
-    //         defaultDate: today,
-    //         maxDate: new Date(),
-    //         appendTo: document.getElementById('inlineModal')
-    //     });
-    // });
-
-    $('#filter_button').click(function() {
-        table.ajax.reload();
-    });
-
     $(document).ready(function() {
         flatpickr('.flatpickr-date', {
             enableTime: false,
@@ -434,20 +408,10 @@
             defaultDate: '',
             maxDate: new Date(),
             appendTo: document.getElementById('inlineModal')
-
         });
-    });
-
-
-    $('#reset_button').click(function() {
-        $('#filter_site_id').val('');
-        $('#filter_supervisor_id').val('');
-        $('#filter_expense_category_id').val('');
-        $('#filter_start_date').val('');
-        $('#filter_end_date').val('');
-        table.ajax.reload();
     });
 </script>
 <script src="{{ asset('assets/custom/save.js') }}"></script>
+<script src="{{ asset('assets/custom/filter.js') }}"></script>
 <script src="{{ asset('assets/custom/delete.js') }}"></script>
 @endsection

@@ -136,8 +136,10 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-list', 'title' => 'List'],
             ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-create', 'title' => 'Create'],
 
-            ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-list', 'title' => 'List'],
-            ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-create', 'title' => 'Create'],
+            ['title_tag' => 'Party', 'name' => 'party-list', 'title' => 'List'],
+            ['title_tag' => 'Party', 'name' => 'party-create', 'title' => 'Create'],
+            ['title_tag' => 'Party', 'name' => 'party-edit', 'title' => 'Edit'],
+            ['title_tag' => 'Party', 'name' => 'party-delete', 'title' => 'Delete'],
 
         ];
 

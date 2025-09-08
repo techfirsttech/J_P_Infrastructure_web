@@ -33,8 +33,7 @@ return [
     'credit' => 'Credit',
     'debit' => 'Debit',
     'document' => 'Document',
-
-
-
-
+    'must_be_file' => 'Document must be an PDF / Image',
+    'file_of_type' => 'Document must be a file of type jpeg, png, jpg, gif, pdf',
+    'file_size' => 'Document must be less than 4MB', 
 ];

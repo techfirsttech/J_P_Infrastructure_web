@@ -1,39 +1,33 @@
 <?php
 
 return [
-
-    'English' => 'English',
-    'Hindi' => 'Hindi',
-    'Gujarati' => 'Gujarati',
-    'Language' => 'Language',
-    'dashboard' => 'Dashboard',
-    'general_master' => 'General',
-    'raw_material' => 'Raw Material',
+   
 
     //common
-    'expenseCategory' => 'Expense Category',
-    'expense_category' => 'Expense Category',
-    'expenseMaster' => 'Expense Master',
-    'expense_master' => 'Expense Master',
-    'expensemaster' => 'Expense Master',
-    'name' => 'Expense Category Name',
+    'party' => 'Party',
+    'party_name' => 'Party Name',
+    'partyMaster' => 'Party Master',
+    'party_master' => 'Party Master',
+    'partymaster' => 'Party Master',
+    'name' => 'Party Name',
 
-    'add' => 'Add Expense Master',
-    'edit' => 'Edit Expense Master',
-    'site' => 'Site',
+    'add' => 'Add Party',
+    'edit' => 'Edit Party',
+    'party_name' => 'Party Name',
     'supervisor' => 'Supervisor',
+    'party_name' => 'Party Name',
     'amount' => 'Amount',
     'remark' => 'Remark',
-    'list' => 'Expense Master List',
+    'list' => 'Party List',
     'enter_amount' => 'Enter Amount',
-    'select_site' => 'Select Site',
+    'select_party_name' => 'Select Party Name',
     'select_supervisor' => 'Select Supervisor',
-    'expenseCategoryName' => 'Expense Category',
+    'select_party_name' => 'Select Party Name',
+    'partyName' => 'Party Name',
     'ledger' => 'Ledger',
     'credit' => 'Credit',
     'debit' => 'Debit',
     'document' => 'Document',
-
     'enter_unique_party_name'=> 'Enter unique party name',
 
 
