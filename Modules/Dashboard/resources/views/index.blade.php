@@ -1,39 +1,49 @@
 @extends('layouts.app')
 @section('title', __('message.dashboard'))
 @section('content')
-<div class="row g-6">
-    @foreach($siteMaster as $site)
-  
-    <div class="col-lg-4 col-sm-6">
-        <div class="card card-border-shadow-primary h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
-                    <div class="avatar me-4">
-                        <span class="avatar-initial rounded bg-label-primary"><i class="fa fa-"></i></span>
-                    </div>
-                    <h4 class="mb-0">{{$site->site_name}}</h4>
-                </div>
+<style>
+    .flatpickr-calendar {
+        z-index: 1100 !important;
+        /* higher than Bootstrap's .offcanvas (1050) */
+    }
 
-                <p class="text-heading fw-medium me-2 mb-1">Total Balance : {{$site->closing_balance}}</p>
-                <!-- <p class="mb-0"> -->
-                <div class="d-flex justify-content-between">
-                    <p class="text-muted  mb-50 me-2">Income : <span class="text-success"> {{$site->total_credit}}</span></p>
-                    <p class="text-muted  mb-50 me-2">Expense : <span class="text-danger"> {{$site->total_debit}}</span></p>
-                </div>
+    .dashboard-filter-btn {
+        padding: 0;
+        position: fixed;
+        top: 20%;
+        right: 0;
+        z-index: 1;
+        display: block;
+        width: 38px;
+        height: 38px;
+        border-top-left-radius: 0.375rem;
+        border-bottom-left-radius: 0.375rem;
+        border-top-right-radius: 0rem;
+        border-bottom-right-radius: 0rem;
+        background: var(--bs-primary);
+        box-shadow: 0px 2px 6px 0px rgba(115, 103, 240, 0.3);
+        color: #fff !important;
+        text-align: center;
+        font-size: 18px !important;
+        line-height: 38px;
+        opacity: 1;
+        -webkit-transition: all 0.1s linear 0.2s;
+        -o-transition: all 0.1s linear 0.2s;
+        transition: all 0.1s linear 0.2s;
+        -webkit-transform: translateX(-58px);
+        -ms-transform: translateX(-58px);
+        transform: translateX(-58px);
+    }
+</style>
 
-                <!-- <span class="text-heading fw-medium me-2">+18.2%</span>
-                    <small class="text-muted">than last week</small> -->
-                <!-- </p> -->
-            </div>
-        </div>
-    </div>
-    @endforeach
+<div class="dashboard_render"></div>
 
-</div>
- <button class="btn btn-primary dashboard-filter-btn" type="button" data-bs-toggle="offcanvas"
+
+<button class="btn btn-primary dashboard-filter-btn" type="button" data-bs-toggle="offcanvas"
     data-bs-target="#offcanvasEnd" aria-controls="offcanvasEnd">
     <i class="fas fa-filter"></i>
-</button> 
+</button>
+
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEnd" aria-labelledby="offcanvasEndLabel">
     <div class="offcanvas-header">
         <h5 id="offcanvasEndLabel" class="offcanvas-title">{{ __('message.dashboard.filter') }}</h5>
@@ -100,18 +110,85 @@
                 </div>
 
                 <div class="col-12 px-2 mb-4 form-group custom-input-group custom-date d-none">
-                    <label class="form-label" for="s_date">{{ __('message.common.start_date') }}</label>
-                    <input type="text" class="form-control flatpickr" name="s_date" id="s_date"
-                        autocomplete="off" placeholder="{{ __('message.common.start_date') }}" readonly>
+                    <label class="form-label">{{ __('message.common.start_date') }}</label>
+                    <input type="text" class="form-control flatpickr" name="ds_date" id="ds_date" autocomplete="off" placeholder="{{ __('message.common.start_date') }}" readonly>
                 </div>
                 <div class="col-12 px-2 mb-4 form-group custom-input-group custom-date d-none">
-                    <label class="form-label" for="e_date">{{ __('message.common.end_date') }}</label>
-                    <input type="text" class="form-control flatpickr" name="e_date" id="e_date"
-                        autocomplete="off" placeholder="{{ __('message.common.end_date') }}" readonly>
+                    <label class="form-label">{{ __('message.common.end_date') }}</label>
+                    <input type="text" class="form-control flatpickr" name="de_date" id="de_date" autocomplete="off" placeholder="{{ __('message.common.end_date') }}" readonly>
                 </div>
             </div>
             <button type="button" class="btn btn-primary mb-2 d-grid w-100 custom-date d-none">{{ __('message.dashboard.filter') }}</button>
         </div>
     </div>
 </div>
+
+@endsection
+@section('pagescript')
+<script>
+    $(document).ready(function() {
+        flatpickr('.flatpickr', {
+            enableTime: false,
+            dateFormat: 'd-m-Y',
+            defaultDate: '',
+            maxDate: new Date(),
+        });
+
+        submitFilterForm('week');
+    });
+
+    $(document).on('change', 'input[name="filter_type"]', function() {
+        const filterValue = $(this).val();
+
+        if (filterValue == 'custom') {
+            $('.custom-date').removeClass('d-none');
+
+        } else {
+            $('.custom-date').addClass('d-none');
+            $('#ds_date').val('');
+            $('#de_date').val('');
+            submitFilterForm(filterValue);
+        }
+    });
+
+    $('.btn-primary').on('click', function() {
+        const selectedFilter = $('input[name="filter_type"]:checked').val();
+        if (selectedFilter === 'custom') {
+            const startDate = $('#ds_date').val();
+            const endDate = $('#de_date').val();
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+            submitFilterForm(selectedFilter, startDate, endDate);
+        }
+    });
+
+    function submitFilterForm(filterType, startDate = null, endDate = null) {
+        var loaderimg = "{{ asset('assets/img/loader.gif') }}";
+        // $('.dashboard_render').html('<div class="row mt-5 pt-5"><div class="col-12 text-center mt-5 pt-5"><img src="'+loaderimg+'" width="100px" /></div></div>');
+
+        $.ajax({
+            url: "{{ route('dashboard-filter') }}",
+            method: 'POST',
+            data: {
+                filter_type: filterType,
+                s_date: startDate,
+                e_date: endDate,
+                _token: "{{ @csrf_token() }}",
+            },
+            success: function(response) {
+                if (response.status_code == 200) {
+                    $('.dashboard_render').html(response.html);
+                } else {
+                    $('.dashboard_render').html('Data not found');
+                }
+            },
+            error: function(xhr) {
+                console.error('AJAX Error:', xhr.responseText);
+                alert('Something went wrong while loading the dashboard data.');
+            }
+        });
+    }
+</script>
 @endsection

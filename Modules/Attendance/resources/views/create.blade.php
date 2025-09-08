@@ -86,8 +86,6 @@
                                 class="btn btn-primary float-end">{{ __('message.common.submit') }}</button>
                         </div>
                     </div>
-
-
                 </form>
             </div>
         </div>
