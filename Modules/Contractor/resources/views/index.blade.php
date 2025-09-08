@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', __('contractor::message.expense_category'))
+@section('title', __('contractor::message.contractor'))
 @section('content')
     <div class="row">
         <div class="col-12 mb-2">
