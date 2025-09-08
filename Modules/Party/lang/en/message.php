@@ -29,6 +29,7 @@ return [
     'debit' => 'Debit',
     'document' => 'Document',
     'enter_unique_party_name'=> 'Enter unique party name',
+    'enter_party_name'=> 'Enter party name',
 
 
 

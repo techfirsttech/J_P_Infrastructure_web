@@ -20,7 +20,7 @@ class ContractorController extends Controller
         $this->middleware('permission:contractor-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:contractor-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:contractor-delete', ['only' => ['destroy']]);
-    }
+    } 
 
     public function index()
     {
