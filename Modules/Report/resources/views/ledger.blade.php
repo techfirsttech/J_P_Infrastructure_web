@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', __('expensemaster::message.ledger'))
+@section('title', __('report::message.ledger_report'))
 @section('content')
 <div class="row">
     <div class="col-12 mb-2">
-        <h5 class="content-header-title float-start mb-0">{{ __('expensemaster::message.ledger') }}</h5>
+        <h5 class="content-header-title float-start mb-0">{{ __('report::message.ledger_report') }}</h5>
     </div>
 
     <div class="col-12 mb-2">
@@ -23,8 +23,8 @@
                         </div>
 
                         <div class="col-12 col-md-4 col-lg-2">
-                            <label for="filter_site_id" class="form-label">Site</label>
-                            <select id="filter_site_id" name="filter_site_id" class="select2 form-select">
+                            <label for="filter_site_id" class="form-label">{{ __('report::message.site') }}</label>
+                            <select id="filter_site_id" name="filter_site_id" class="select2 form-select site-change">
                                 <option value="All">{{ __('message.common.all') }}</option>
                                 @foreach ($siteMaster as $site)
                                 <option value="{{ $site->id }}">{{ $site->site_name }}</option>
@@ -43,7 +43,7 @@
                         </div>
 
                         <div class="col-12 col-md-4 col-lg-2">
-                            @php $search = true; $reset = true; $export = route('ledger-pdf'); @endphp
+                            @php $search = true; $reset = true; $export = $urlPdf; @endphp
                             {{ view('layouts.filter-button', compact('search', 'reset', 'export')) }}
                         </div>
                     </div>
@@ -59,20 +59,20 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Date</th>
-                            <th>{{ __('expensemaster::message.site') }}</th>
-                            <th>{{ __('expensemaster::message.supervisor') }}</th>
-                            <th>{{ __('expensemaster::message.remark') }}</th>
-                            <th class="text-dark">{{ __('expensemaster::message.credit') }}</th>
-                            <th class="text-dark">{{ __('expensemaster::message.debit') }}</th>
+                            <th>{{ __('message.common.date') }}</th>
+                            <th>{{ __('report::message.site') }}</th>
+                            <th>{{ __('report::message.supervisor') }}</th>
+                            <th>{{ __('report::message.remark') }}</th>
+                            <th class="text-dark">{{ __('report::message.credit') }}</th>
+                            <th class="text-dark">{{ __('report::message.debit') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                     <tfoot class="bg-light">
                         <tr>
-                            <th colspan="3" class="text-start ms-2 ps-3"><b>Closing Balance : </b><b class=" total-balance"> 0.00</b></th>
-                            <th class="text-end pe-5"><b>Total</b></th>
+                            <th colspan="3" class="text-start ms-2 ps-3"><b>{{ __('report::message.closing_balance') }} : </b><b class=" total-balance"> 0.00</b></th>
+                            <th class="text-end pe-5"><b>{{ __('report::message.total') }}</b></th>
                             <th class=""><b></b></th>
                             <th class=" text-end pe-5"><b class=" total_credit">0.00</b></th>
                             <th class=" text-end pe-5"><b class=" total_debit">0.000</b></th>
@@ -88,12 +88,12 @@
 @section('pagescript')
 <script type="application/javascript">
     'use strict';
-    const URL = "{{route('payment-ledger')}}";
+    const URL = "{{ $url }}";
     var table = '';
     $(function() {
         table = $('#table').DataTable({
             ajax: {
-                url: "{{ route('payment-ledger') }}",
+                url: URL,
                 data: function(d) {
                     d.site_id = $('#filter_site_id').val();
                     d.supervisor_id = $('#filter_supervisor_id').val();
@@ -216,6 +216,43 @@
                 }
             }
         });
+    });
+
+    $(document).on('change','.site-change', function(e) {
+        e.preventDefault();
+          var id = $(this).val();
+          if (id != 'All') {
+               $("#filter_supervisor_id").append(`<option value="" selected><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Wait</option>`);
+               var route = "{{ route('get-site-supervisor') }}";
+               $.ajax({
+                    type: "get",
+                    url: route,
+                    dataType: 'json',
+                    data: {
+                         "id": id,
+                         "_token": "{{ csrf_token() }}",
+                    },
+                    success: function(response) {
+                         if (response.status_code == 200) {
+                              $("#filter_supervisor_id").empty();
+                              $("#filter_supervisor_id").append(`<option value="All" selected>{{ __('message.common.all') }}</option>`);
+                              if (response.result.length > 0) {
+                                   $.each(response.result, function(index, row) {
+                                        $("#filter_supervisor_id").append($("<option value='" + row.id + "'>" + row.name + "</option>"));
+                                   });
+                              } else {
+                                   toastr.warning('Supervisor not found.', "Warning");
+                              }
+                         } else if (response.status_code == 201 || response.status_code == 404) {
+                              toastr.warning(response.message, "Warning");
+                         } else {
+                              toastr.error(response.message, "Opps!");
+                         }
+                    }
+               });
+          } else {
+               $('#filter_supervisor_id').val('All').trigger('change');
+          }
     });
 </script>
 <script src="{{ asset('assets/custom/filter.js') }}"></script>
