@@ -135,43 +135,45 @@ class PaymentMasterController extends Controller
             $expenseMaster->remark = $request->remark;
             $expenseMaster->date = now()->toDateString();
             $expenseMaster->year_id = $yearID;
-            $result = $expenseMaster->save();
+            $expense = $expenseMaster->save();
 
             $paymentMaster = new PaymentMaster();
             $paymentMaster->supervisor_id = $expenseMaster->supervisor_id;
-            $expenseMaster->to_supervisor_id = $request->to_supervisor_id;
+            $paymentMaster->to_supervisor_id = $request->to_supervisor_id;
             $paymentMaster->model_type = "Expense";
             $paymentMaster->model_id = $expenseMaster->id;
             $paymentMaster->amount = $expenseMaster->amount;
             $paymentMaster->status = "Debit";
             $paymentMaster->remark = $expenseMaster->remark;
-            $paymentMaster->date = (!empty($expenseMaster->date)) ? date('Y-m-d', strtotime($expenseMaster->date)) : null;;
+            $paymentMaster->date = (!empty($expenseMaster->date)) ? date('Y-m-d', strtotime($expenseMaster->date)) : null;
             $paymentMaster->year_id = $yearID;;
             $paymentMaster->save();
 
             $incomeMaster = new IncomeMaster();
             $incomeMaster->site_id = $request->site_id;
             $incomeMaster->supervisor_id = $request->to_supervisor_id;
+            // $incomeMaster->to_supervisor_id = $request->supervisor_id;
             $incomeMaster->amount = $request->amount;
             $incomeMaster->remark = $request->remark;
             $incomeMaster->date = now()->toDateString();
             // $incomeMaster->date = (!empty($request->date)) ? date('Y-m-d', strtotime($request->date)) : null;
             $incomeMaster->year_id = $yearID;
-            $result = $incomeMaster->save();
+            $income = $incomeMaster->save();
 
 
-            $paymentMaster = new PaymentMaster();
-            $expenseMaster->site_id = $incomeMaster->site_id;
-            $paymentMaster->supervisor_id = $incomeMaster->supervisor_id;
-            $paymentMaster->model_type = "Income";
-            $paymentMaster->model_id = $incomeMaster->id;
-            $paymentMaster->amount = $incomeMaster->amount;
-            $paymentMaster->status = "Credit";
-            $paymentMaster->remark = $incomeMaster->remark;
-            $paymentMaster->date = now()->toDateString();
-            // $paymentMaster->date = (!empty($incomeMaster->date)) ? date('Y-m-d', strtotime($incomeMaster->date)) : null;;
-            $paymentMaster->year_id = $yearID;;
-            $paymentMaster->save();
+            $paymentMasters = new PaymentMaster();
+            $paymentMasters->site_id = $request->site_id;
+            $paymentMasters->supervisor_id =  $request->to_supervisor_id;
+            $paymentMasters->to_supervisor_id = $request->supervisor_id;
+            $paymentMasters->model_type = "Income";
+            $paymentMasters->model_id = $incomeMaster->id;
+            $paymentMasters->amount = $incomeMaster->amount;
+            $paymentMasters->status = "Credit";
+            $paymentMasters->remark = $incomeMaster->remark;
+            // $paymentMasters->date = now()->toDateString();
+            $paymentMasters->date = (!empty($incomeMaster->date)) ? date('Y-m-d', strtotime($incomeMaster->date)) : null;;
+            $paymentMasters->year_id = $yearID;;
+            $paymentMasters->save();
 
             $paymentTransfer = new PaymentTransfer();
             // $paymentTransfer->supervisor_id = Auth::id();
@@ -183,7 +185,7 @@ class PaymentMasterController extends Controller
             $paymentTransfer->year_id = $yearID;;
             $paymentTransfer->save();
 
-            if (!is_null($result)) {
+            if (!is_null($income) || !is_null($expense)) {
                 DB::commit();
                 return response()->json(['status_code' => 200, 'message' => 'Payment transfer successfully.']);
             } else {

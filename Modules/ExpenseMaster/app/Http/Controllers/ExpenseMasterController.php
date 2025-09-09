@@ -4,9 +4,11 @@ namespace Modules\ExpenseMaster\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Modules\ExpenseMaster\Models\ExpenseMaster;
 use Modules\PaymentMaster\Models\PaymentMaster;
@@ -134,6 +136,17 @@ class ExpenseMasterController extends Controller
                     }
                     return '';
                 })
+
+                // ->editColumn('document', function ($row) {
+                //     if ($row->document) {
+                //         $url = url('public/expense/document/' . $row->document);
+                //         return '<a href="' . $url . '" target="_blank">
+                //     <img src="' . $url . '" alt="Document" height="40" />
+                // </a>';
+                //     } else {
+                //         return '';
+                //     }
+                // })
                 ->escapeColumns([])
                 ->make(true);
         } else {
@@ -149,6 +162,28 @@ class ExpenseMasterController extends Controller
         }
     }
 
+
+    //    public function statusChange(Request $request)
+    //     {
+    //         $validator = Validator::make($request->all(), [
+    //             'id' => 'required|integer|exists:expense_masters,id',
+    //             'status' => 'required',
+    //         ], [
+    //             'id.required' => 'ID is required.',
+    //             'id.integer' => 'ID must be an integer.',
+    //             'id.exists' => 'The enter expense master ID does not exist.',
+    //             'status.required' => 'Enter expense status',
+    //         ]);
+    //         if ($validator->fails()) {
+    //             return response()->json(['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()]);
+    //         }
+    //         try {
+    //             ExpenseMaster::where('id', $request->id)->update(['status' => $request->status]);
+    //             return response()->json(['status_code' => 200, 'message' => 'Status change successfully.']);
+    //         } catch (\Exception $e) {
+    //             return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
+    //         }
+    //     }
 
     public function statusChange(Request $request)
     {
@@ -253,6 +288,7 @@ class ExpenseMasterController extends Controller
                 return response()->json(['status_code' => 403, 'message' => 'Expense' . $msg . 'failed.']);
             }
         } catch (\Exception $e) {
+            dd($e);
             DB::rollback();
             return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
         }
@@ -274,7 +310,27 @@ class ExpenseMasterController extends Controller
             File::makeDirectory($thumbPath, 0755, true);
         }
 
+        // Move original file
         $file->move($originalPath, $filename);
+
+        // Only generate thumbnails for image types
+        // if (in_array($originalExtension, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
+        //     $tempPath = $originalPath . '/' . $filename;
+
+        //     // Safely try to create image resource
+        //     $src = @imagecreatefromstring(file_get_contents($tempPath));
+        //     if ($src !== false) {
+        //         $trueColor = imagecreatetruecolor(200, 200);
+        //         list($width, $height) = getimagesize($tempPath);
+        //         imagecopyresampled($trueColor, $src, 0, 0, 0, 0, 200, 200, $width, $height);
+
+        //         $thumbName = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
+        //         imagewebp($trueColor, $thumbPath . '/' . $thumbName, 90);
+
+        //         imagedestroy($src);
+        //         imagedestroy($trueColor);
+        //     }
+        // }
 
         return $filename;
     }
@@ -365,6 +421,11 @@ class ExpenseMasterController extends Controller
                 }
             })->orderBy('payment_masters.date', 'DESC');
 
+
+        // $totalExpense = (clone $query)->where('model_type', 'Expense')->sum('payment_masters.amount');
+        // $totalIncome = (clone $query)->where('model_type', 'Income')->sum('payment_masters.amount');
+        // $closingBalance = $totalIncome - $totalExpense;
+
         if (request()->ajax()) {
             return DataTables::of($query)
                 ->addIndexColumn()
@@ -395,6 +456,7 @@ class ExpenseMasterController extends Controller
             $siteMaster = SiteMaster::orderBy('site_name', 'ASC')->get();
             $supervisor = User::whereHas('roles', fn($q) => $q->where('name', 'Supervisor'))->orderBy('name', 'ASC')->get();
             return view('expensemaster::ledger', compact('siteMaster', 'supervisor'));
+            // return view('expensemaster::ledger', compact('siteMaster', 'supervisor', 'totalExpense', 'totalIncome', 'closingBalance'));
         }
     }
 
@@ -443,6 +505,43 @@ class ExpenseMasterController extends Controller
                     }
                 })->orderBy('payment_masters.date', 'DESC')->get();
 
+
+            // Fetch data without pagination for PDF
+            // $payments = $query->orderBy('payment_masters.id', 'DESC')->get();
+
+            // Format amount
+            // $payments->transform(function ($item) {
+            //     $item->amount = floor($item->amount) == $item->amount ? (int)$item->amount : (float)$item->amount;
+            //     return $item;
+            // });
+
+            // Totals
+            // $totalExpense = $query->clone()->where('model_type', 'Expense')->sum('payment_masters.amount');
+            // $totalIncome = $query->clone()->where('model_type', 'Income')->sum('payment_masters.amount');
+            // $totalExpense = floor($totalExpense) == $totalExpense ? (int)$totalExpense : (float)$totalExpense;
+            // $totalIncome = floor($totalIncome) == $totalIncome ? (int)$totalIncome : (float)$totalIncome;
+
+            // PDF data
+            // $data = [
+            //     'title' => 'Ledger Report',
+            //     'query' => $query,
+            //     'total_expense' => $totalExpense,
+            //     'total_income' => $totalIncome,
+            //     'closing_balance' => $totalIncome - $totalExpense,
+            //     'filters' => $request->all()
+            // ];
+
+            // $pdf = Pdf::loadView('expensemaster::ledger-pdf', $data);
+            // $pdf->setPaper('A4', 'portrait');
+
+            // $fileName = 'ledger-' . Str::random(10) . '.pdf';
+            // $folder = 'ledger';
+            // $fileRelativePath = $folder . '/' . $fileName;
+
+            // Storage::disk('public')->put($fileRelativePath, $pdf->output());
+            // $fileUrl = url('public/storage/' . $fileRelativePath);
+
+
             if (!is_null($query)) {
                 $pdf = Pdf::loadView('expensemaster::ledger-pdf', compact('query'));
 
@@ -456,6 +555,7 @@ class ExpenseMasterController extends Controller
                     mkdir($path, 0777, true);
                 }
 
+                // previous all file delete from folder
                 $files = glob($path . '*');
                 foreach ($files as $file) {
                     if (is_file($file)) {

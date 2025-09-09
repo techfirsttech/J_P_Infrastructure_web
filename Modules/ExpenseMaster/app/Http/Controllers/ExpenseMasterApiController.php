@@ -339,44 +339,75 @@ class ExpenseMasterApiController extends Controller
                 'payment_masters.id',
                 'payment_masters.site_id',
                 'payment_masters.supervisor_id',
+                'payment_masters.to_supervisor_id',
                 'payment_masters.model_type',
                 'payment_masters.model_id',
                 'payment_masters.amount',
                 'payment_masters.remark',
                 DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
                 'payment_masters.status',
-                // 'site_masters.site_name',
+                'site_masters.site_name',
                 'users.name as supervisor_name',
-                DB::raw("CONCAT_WS(' - ', site_masters.site_name, users.name) as site_name")
+                DB::raw("CONCAT_WS('\n', site_masters.site_name, users.name) as site_names"),
+                'to_supervisor.name as to_supervisor_name'
             )
                 ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
-                ->leftJoin('users', 'users.id', '=', 'payment_masters.supervisor_id');
+                ->leftJoin('users as supervisor', 'supervisor.id', '=', 'payment_masters.supervisor_id')
+                ->when(role_supervisor(), function ($q) {
+                    return $q->where('user_id', Auth::id());
+                })
+                ->when(!empty($request->site_id) && $request->site_id !== 'All', function ($query) use ($request) {
+                    $query->where('payment_masters.site_id', $request->site_id);
+                })
+                ->when(!empty($request->supervisor_id) && $request->supervisor_id !== 'All', function ($query) use ($request) {
+                    $query->where('payment_masters.supervisor_id', $request->supervisor_id);
+                })
+                ->when(!empty($request->s_date) || !empty($request->e_date), function ($query) use ($request) {
+                    $startDate = !empty($request->s_date)
+                        ? date('Y-m-d 00:00:00', strtotime($request->s_date))
+                        : null;
 
-            $user = Auth::user();
-            $role = $user->roles->first();
+                    $endDate = !empty($request->e_date)
+                        ? date('Y-m-d 23:59:59', strtotime($request->e_date))
+                        : ($startDate ? date('Y-m-d 23:59:59', strtotime($request->s_date)) : null);
 
-            if ($role && $role->name === 'Supervisor') {
-                $query->where('payment_masters.supervisor_id', $user->id);
-            }
+                    if ($startDate && $endDate) {
+                        $query->whereBetween('payment_masters.date', [$startDate, $endDate]);
+                    } elseif ($startDate) {
+                        $query->where('payment_masters.date', '>=', $startDate);
+                    } elseif ($endDate) {
+                        $query->where('payment_masters.date', '<=', $endDate);
+                    }
+                })->orderBy('payment_masters.date', 'DESC');
+            // ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
+            // ->leftJoin('users', 'users.id', '=', 'payment_masters.supervisor_id')
+            // ->leftJoin('users as to_supervisor', 'to_supervisor.id', '=', 'payment_masters.to_supervisor_id');
 
-            if ($request->filled('supervisor_id')) {
-                $query->where('payment_masters.supervisor_id', $request->supervisor_id);
-            }
-            if ($request->filled('site_id')) {
-                $query->where('payment_masters.site_id', $request->site_id);
-            }
+            // $user = Auth::user();
+            // $role = $user->roles->first();
 
-            if ($request->filled('start_date') && $request->filled('end_date')) {
-                $startDate = Carbon::parse($request->start_date)->startOfDay();
-                $endDate = Carbon::parse($request->end_date)->endOfDay();
-                $query->whereBetween('payment_masters.created_at', [$startDate, $endDate]);
-            } elseif ($request->filled('start_date')) {
-                $startDate = Carbon::parse($request->start_date)->startOfDay();
-                $query->where('payment_masters.created_at', '>=', $startDate);
-            } elseif ($request->filled('end_date')) {
-                $endDate = Carbon::parse($request->end_date)->endOfDay();
-                $query->where('payment_masters.created_at', '<=', $endDate);
-            }
+            // if ($role && $role->name === 'Supervisor') {
+            //     $query->where('payment_masters.supervisor_id', $user->id);
+            // }
+
+            // if ($request->filled('supervisor_id')) {
+            //     $query->where('payment_masters.supervisor_id', $request->supervisor_id);
+            // }
+            // if ($request->filled('site_id')) {
+            //     $query->where('payment_masters.site_id', $request->site_id);
+            // }
+
+            // if ($request->filled('start_date') && $request->filled('end_date')) {
+            //     $startDate = Carbon::parse($request->start_date)->startOfDay();
+            //     $endDate = Carbon::parse($request->end_date)->endOfDay();
+            //     $query->whereBetween('payment_masters.created_at', [$startDate, $endDate]);
+            // } elseif ($request->filled('start_date')) {
+            //     $startDate = Carbon::parse($request->start_date)->startOfDay();
+            //     $query->where('payment_masters.created_at', '>=', $startDate);
+            // } elseif ($request->filled('end_date')) {
+            //     $endDate = Carbon::parse($request->end_date)->endOfDay();
+            //     $query->where('payment_masters.created_at', '<=', $endDate);
+            // }
 
             // $totalExpense = (clone $query)->where('model_type', 'Expense')->sum('payment_masters.amount');
             // $totalIncome = (clone $query)->where('model_type', 'Income')->sum('payment_masters.amount');
