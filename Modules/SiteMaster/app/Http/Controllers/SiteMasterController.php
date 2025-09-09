@@ -61,12 +61,11 @@ class SiteMasterController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     $show = '';
+                    $edit = 'site-master-edit';
                     if ($row->id == 18) {
 
-                        $edit = '';
                         $delete = '';
                     } else {
-                        $edit = 'site-master-edit';
                         $delete = 'site-master-delete';
                     }
                     $assign = ''; //'assign-user-list';
