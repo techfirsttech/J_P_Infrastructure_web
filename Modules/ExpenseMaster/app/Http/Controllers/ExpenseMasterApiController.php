@@ -344,16 +344,16 @@ class ExpenseMasterApiController extends Controller
                 'payment_masters.remark',
                 DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
                 'payment_masters.status',
-                // 'site_masters.site_name',
+                'site_masters.site_name',
                 'supervisor.name as supervisor_name',
-                DB::raw("CONCAT_WS('\n', site_masters.site_name, supervisor.name) as site_name"),
+                DB::raw("CONCAT_WS('-', site_masters.site_name, supervisor.name) as site_names"),
                 'to_supervisor.name as to_supervisor_name'
             )
                 ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
                 ->leftJoin('users as supervisor', 'supervisor.id', '=', 'payment_masters.supervisor_id')
                 ->leftJoin('users as to_supervisor', 'to_supervisor.id', '=', 'payment_masters.to_supervisor_id')
                 ->when(role_supervisor(), function ($q) {
-                    return $q->where('payment_masters.created_by', Auth::id());
+                    return $q->where('payment_masters.supervisor_id', Auth::id());
                 })
                 ->when(!empty($request->site_id) && $request->site_id !== 'All', function ($query) use ($request) {
                     $query->where('payment_masters.site_id', $request->site_id);
@@ -378,6 +378,12 @@ class ExpenseMasterApiController extends Controller
                         $query->where('payment_masters.date', '<=', $endDate);
                     }
                 })->orderBy('payment_masters.date', 'DESC');
+
+            if (role_supervisor()) {
+                $query->addSelect(DB::raw("CONCAT_WS('-', site_masters.site_name, to_supervisor.name) as site_names"));
+            } else {
+                $query->addSelect(DB::raw("CONCAT_WS('-', site_masters.site_name, supervisor.name) as site_names"));
+            }
             // ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
             // ->leftJoin('users', 'users.id', '=', 'payment_masters.supervisor_id')
             // ->leftJoin('users as to_supervisor', 'to_supervisor.id', '=', 'payment_masters.to_supervisor_id');
