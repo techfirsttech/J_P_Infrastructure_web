@@ -1,50 +1,57 @@
 @extends('layouts.app')
 @section('title', __('paymentmaster::message.paymenttransfer'))
 @section('content')
-<div class="row mb-3">
-    <div class="col-md-2 form-group custom-input-group">
-        <label for="filter_supervisor_id" class="form-label">From Supervisor<span class="text-danger">*</span></label>
-        <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
-            <option value="">-- All --</option>
-            @foreach ($supervisor as $supervisors)
-            <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
-            @endforeach
-        </select>
-    </div>
-    <div class="col-md-2 form-group custom-input-group">
-        <label for="filter_to_supervisor_id" class="form-label">To Supervisor<span class="text-danger">*</span></label>
-        <select id="filter_to_supervisor_id" name="filter_to_supervisor_id" class="select2 form-select">
-            <option value="">-- All --</option>
-            @foreach ($supervisor as $supervisors)
-            <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
-            @endforeach
-        </select>
-    </div>
-
-    <div class="col-md-2 form-group custom-input-group">
-        <label class="form-label" for="start_date">Start Date</label>
-        <input type="text" class="form-control flatpickr-date" name="start_date" id="start_date"
-            placeholder="End Date" value="">
-    </div>
-    <div class="col-md-2 form-group custom-input-group">
-        <label class="form-label" for="end_date">End Date</label>
-        <input type="text" class="form-control flatpickr-date" name="end_date" id="end_date"
-            placeholder="End Date" value="">
-    </div>
-    <div class="col-md-2 text-end pt-5">
-        <button class="btn btn-primary px-3" id="filter_button"><i class="fa fa-search"></i></button>
-        <button class="btn btn-secondary px-3" id="reset_button"><i class="fa fa-refresh"></i></button>
-    </div>
-</div>
-
 <div class="row">
     <div class="col-12 mb-2">
         <h5 class="content-header-title float-start mb-0">{{ __('paymentmaster::message.list') }}</h5>
         @can('income-master-create')
-        <button type="button" data-bs-toggle="modal" data-bs-target="#inlineModal"
-            class="btn btn-sm btn-primary new-create float-end"><i
-                class="fa fa-plus me-25"></i>{{ __('message.common.addNew') }}</button>
+        <button type="button" data-bs-toggle="modal" data-bs-target="#inlineModal" class="btn btn-sm btn-primary new-create float-end"><i class="fa fa-plus me-25"></i>{{ __('message.common.addNew') }}</button>
         @endcan
+    </div>
+    <div class="col-12 mb-2">
+        <div class="card">
+            <div class="card-body">
+                <form id="filter_form" action="javascript:void(0)" method="POST">
+                    @csrf
+                    <div class="row g-2 pt-25 align-items-end">
+                        <div class="col-12 col-md-4 col-lg-2 m-0">
+                            <label class="form-label" for="s_date">{{ __('message.common.start_date') }}</label>
+                            <input type="text" class="form-control flatpickr" name="s_date" id="s_date" value="" autocomplete="off" placeholder="{{ __('message.common.start_date') }}" readonly>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2 m-0">
+                            <label class="form-label" for="e_date">{{ __('message.common.end_date') }}</label>
+                            <input type="text" class="form-control flatpickr" name="e_date" id="e_date" value="" autocomplete="off" placeholder="{{ __('message.common.end_date') }}" readonly>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2 m-0">
+                            <label for="filter_supervisor_id" class="form-label">From Supervisor</label>
+                            <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
+                                <option selected value="All">{{ __('message.common.all') }}</option>
+                                @foreach ($supervisor as $supervisors)
+                                <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2 m-0">
+                            <label for="filter_to_supervisor_id" class="form-label">To Supervisor</label>
+                            <select id="filter_to_supervisor_id" name="filter_to_supervisor_id" class="select2 form-select">
+                                <option selected value="All">{{ __('message.common.all') }}</option>
+                                @foreach ($supervisor as $supervisors)
+                                <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-2">
+                            @php $search = true; $reset = true; $export = false; @endphp
+                            {{ view('layouts.filter-button', compact('search', 'reset', 'export')) }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <div class="col-12">
         <div class="card p-1">
@@ -55,12 +62,9 @@
                             <th>#</th>
                             <th>{{ __('message.common.date') }}</th>
                             <th>From {{ __('paymentmaster::message.supervisor') }}</th>
-
-                            <!-- <th>To {{ __('paymentmaster::message.site') }}</th> -->
                             <th>To {{ __('paymentmaster::message.supervisor') }}</th>
                             <th>{{ __('paymentmaster::message.amount') }}</th>
                             <th>{{ __('paymentmaster::message.remark') }}</th>
-                            {{-- <th>{{ __('message.common.action') }}</th> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -148,10 +152,10 @@
             ajax: {
                 url: "{{ route('paymentmaster.index') }}",
                 data: function(d) {
-                    d.supervisor_id = $('#supervisor_id').val();
-                    d.to_supervisor_id = $('#to_supervisor_id').val();
-                    d.start_date = $('#start_date').val();
-                    d.end_date = $('#end_date').val();
+                    d.filter_supervisor_id = $('#filter_supervisor_id').val();
+                    d.filter_to_supervisor_id = $('#filter_to_supervisor_id').val();
+                    d.s_date = $('#s_date').val();
+                    d.e_date = $('#e_date').val();
                 }
             },
             processing: true,
@@ -191,19 +195,15 @@
                 },
                 {
                     data: 'date',
-                    name: 'date'
+                    name: 'payment_transfers.created_at'
                 },
                 {
-                    data: 'from_user_name',
-                    name: 'user.name'
+                    data: 'supervisor_name',
+                    name: 'supervisor.name'
                 },
-                //  {
-                //     data: 'site_name',
-                //     name: 'site.site_name'
-                // },
                 {
-                    data: 'to_user_name',
-                    name: 'to_user.name'
+                    data: 'to_supervisor_name',
+                    name: 'to_supervisor.name'
                 },
                 {
                     data: 'amount',
@@ -213,13 +213,6 @@
                     data: 'remark',
                     name: 'remark'
                 },
-                // {
-                //      data: 'action',
-                //      name: 'action',
-                //      orderable: false,
-                //      sortable: false
-                // },
-
             ],
             initComplete: function(settings, json) {
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -258,7 +251,7 @@
     $("#inlineModal").on("hidden.bs.modal", function(e) {
         $(this).find('form').trigger('reset');
         $("#id").val("");
-        $('.select2').val('').trigger('change');
+        $('#form .select2').val('').trigger('change');
         $(".invalid-feedback,.custom-error").html("");
         $(".save").html("Submit");
         $(".save").attr('disabled', false);
@@ -383,6 +376,7 @@
         }
     });
 </script>
+<script src="{{asset('assets/custom/filter.js')}}"></script>
 <script src="{{ asset('assets/custom/save.js') }}"></script>
 <script src="{{ asset('assets/custom/delete.js') }}"></script>
 @endsection
