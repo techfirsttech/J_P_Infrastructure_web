@@ -84,11 +84,14 @@ class PaymentMasterController extends Controller
                 ->escapeColumns([])
                 ->make(true);
         } else {
-            $supervisor = User::select('id', 'name')->get();
-            $site = SiteMaster::select('id','site_name')->get();
-            $toSupervisor = User::select('id', 'name')->get();
-            $to_supervisors = User::select('id', 'name')->where('id', '!=', Auth::id())->get();
-            return view('paymentmaster::index', compact('supervisor', 'toSupervisor', 'to_supervisors','site'));
+            $supervisor = User::select('id', 'name')
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'supervisor');
+                })->get();
+            $site = SiteMaster::select('id', 'site_name')->get();
+            // $toSupervisor = User::select('id', 'name')->get();
+            // $to_supervisors = User::select('id', 'name')->where('id', '!=', Auth::id())->get();
+            return view('paymentmaster::index', compact('supervisor', 'site'));
         }
     }
 
@@ -100,37 +103,41 @@ class PaymentMasterController extends Controller
         return view('paymentmaster::create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'to_supervisor_id' => 'required|integer|exists:users,id',
+            'site_id' => 'required|integer|exists:site_masters,id',
+            'supervisor_id' => 'required|integer|exists:users,id',
             'amount' => 'required',
         ], [
 
+            'supervisor_id.required' => __('expensemaster::message.supervisor_id_is_required.'),
+            'supervisor_id.integer' => __('expensemaster::message.supervisor_id_must_be_an_integer.'),
+            'supervisor_id.exists' => __('expensemaster::message.the_selected_supervisor_id_does_not_exist.'),
+            
             'to_supervisor_id.required' => __('expensemaster::message.supervisor_id_is_required.'),
             'to_supervisor_id.integer' => __('expensemaster::message.supervisor_id_must_be_an_integer.'),
             'to_supervisor_id.exists' => __('expensemaster::message.the_selected_supervisor_id_does_not_exist.'),
+
+            'site_id.required' => __('expensemaster::message.site_id_is_required.'),
+            'site_id.integer' => __('expensemaster::message.site_id_must_be_an_integer.'),
+            'site_id.exists' => __('expensemaster::message.the_selected_site_id_does_not_exist.'),
 
             'amount.required' => __('expensemaster::message.amount_is_required.'),
         ]);
 
         if ($validator->fails()) {
-            $error = $validator->errors();
-            $response = ['status' => false, 'message' => 'Please input proper data.', 'errors' => $error];
-            return response()->json($response, 422);
+            return response()->json(['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()]);
         }
         DB::beginTransaction();
         try {
             $yearID = getSelectedYear();
             $expenseMaster = new ExpenseMaster();
-            // $expenseMaster->supervisor_id = Auth::id();
             $expenseMaster->supervisor_id = $request->supervisor_id;
             $expenseMaster->amount = $request->amount;
             $expenseMaster->remark = $request->remark;
-            $expenseMaster->date = now()->toDateString();
+            $expenseMaster->date = date('Y-m-d');
             $expenseMaster->year_id = $yearID;
             $expense = $expenseMaster->save();
 
@@ -142,7 +149,7 @@ class PaymentMasterController extends Controller
             $paymentMaster->amount = $expenseMaster->amount;
             $paymentMaster->status = "Debit";
             $paymentMaster->remark = $expenseMaster->remark;
-            $paymentMaster->date = (!empty($expenseMaster->date)) ? date('Y-m-d', strtotime($expenseMaster->date)) : null;
+            $paymentMaster->date = date('Y-m-d');
             $paymentMaster->year_id = $yearID;;
             $paymentMaster->save();
 
@@ -152,8 +159,7 @@ class PaymentMasterController extends Controller
             // $incomeMaster->to_supervisor_id = $request->supervisor_id;
             $incomeMaster->amount = $request->amount;
             $incomeMaster->remark = $request->remark;
-            $incomeMaster->date = now()->toDateString();
-            // $incomeMaster->date = (!empty($request->date)) ? date('Y-m-d', strtotime($request->date)) : null;
+            $incomeMaster->date = date('Y-m-d');
             $incomeMaster->year_id = $yearID;
             $income = $incomeMaster->save();
 
@@ -167,19 +173,17 @@ class PaymentMasterController extends Controller
             $paymentMasters->amount = $incomeMaster->amount;
             $paymentMasters->status = "Credit";
             $paymentMasters->remark = $incomeMaster->remark;
-            // $paymentMasters->date = now()->toDateString();
-            $paymentMasters->date = (!empty($incomeMaster->date)) ? date('Y-m-d', strtotime($incomeMaster->date)) : null;;
+            $paymentMasters->date = date('Y-m-d');
             $paymentMasters->year_id = $yearID;;
             $paymentMasters->save();
 
             $paymentTransfer = new PaymentTransfer();
-            // $paymentTransfer->supervisor_id = Auth::id();
             $paymentTransfer->supervisor_id = $request->supervisor_id;
             $paymentTransfer->site_id = $request->site_id;
             $paymentTransfer->to_supervisor_id = $request->to_supervisor_id;
             $paymentTransfer->amount = $incomeMaster->amount;
             $paymentTransfer->remark = $request->remark;
-            $paymentTransfer->year_id = $yearID;;
+            $paymentTransfer->year_id = $yearID;
             $paymentTransfer->save();
 
             if (!is_null($income) || !is_null($expense)) {
@@ -190,7 +194,7 @@ class PaymentMasterController extends Controller
                 return response()->json(['status_code' => 403, 'message' => 'Payment transfer failed.']);
             }
         } catch (\Exception $e) {
-            dd($e);
+                dd($e);
             DB::rollback();
             return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
         }
