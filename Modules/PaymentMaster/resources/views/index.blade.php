@@ -2,27 +2,23 @@
 @section('title', __('paymentmaster::message.paymenttransfer'))
 @section('content')
 <div class="row mb-3">
-
-
     <div class="col-md-2 form-group custom-input-group">
-        <label for="supervisor_id" class="form-label">From Supervisor<span class="text-danger">*</span></label>
-        <select id="supervisor_id" name="supervisor_id" class="select2 form-select">
+        <label for="filter_supervisor_id" class="form-label">From Supervisor<span class="text-danger">*</span></label>
+        <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
             <option value="">-- All --</option>
             @foreach ($supervisor as $supervisors)
             <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
             @endforeach
         </select>
-        <span class="invalid-feedback d-block" id="error_supervisor_id" role="alert"></span>
     </div>
     <div class="col-md-2 form-group custom-input-group">
-        <label for="to_supervisor_id" class="form-label">To Supervisor<span class="text-danger">*</span></label>
-        <select id="to_supervisor_id" name="to_supervisor_id" class="select2 form-select">
+        <label for="filter_to_supervisor_id" class="form-label">To Supervisor<span class="text-danger">*</span></label>
+        <select id="filter_to_supervisor_id" name="filter_to_supervisor_id" class="select2 form-select">
             <option value="">-- All --</option>
             @foreach ($supervisor as $supervisors)
             <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
             @endforeach
         </select>
-        <span class="invalid-feedback d-block" id="error_to_supervisor_id" role="alert"></span>
     </div>
 
     <div class="col-md-2 form-group custom-input-group">
@@ -87,71 +83,52 @@
                     @csrf
                     <div class="row">
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
-                            <label for="to_supervisor_id"
-                                class="form-label">{{ __('paymentmaster::message.fromSupervisor') }}</label>
+                            <label for="to_supervisor_id" class="form-label">{{ __('paymentmaster::message.fromSupervisor') }} <span class="text-danger">*</span></label>
                             <select id="supervisor_id" name="supervisor_id" class="select2 form-select">
                                 <option value="">{{ __('message.common.select') }}</option>
                                 @if ($supervisor->count() > 0)
                                 @foreach ($supervisor as $value)
-                                <option value="{{ $value->id }}">{{ $value->name }}
-                                </option>
+                                <option value="{{ $value->id }}">{{ $value->name }}</option>
                                 @endforeach
                                 @endif
                             </select>
                             <span class="invalid-feedback d-block" id="error_supervisor_id" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
-                            <label for="to_supervisor_id"
-                                class="form-label">{{ __('paymentmaster::message.site') }}</label>
-                            <select id="site_id" name="site_id" class="select2 form-select">
+                            <label for="site_id" class="form-label">{{ __('paymentmaster::message.site') }} <span class="text-danger">*</span></label>
+                            <select id="site_id" name="site_id" class="select2 form-select site-change">
                                 <option value="">{{ __('message.common.select') }}</option>
                                 @if ($site->count() > 0)
                                 @foreach ($site as $value)
-                                <option value="{{ $value->id }}">{{ $value->site_name }}
-                                </option>
+                                <option value="{{ $value->id }}">{{ $value->site_name }}</option>
                                 @endforeach
                                 @endif
                             </select>
                             <span class="invalid-feedback d-block" id="error_site_id" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
-                            <label for="to_supervisor_id"
-                                class="form-label">{{ __('paymentmaster::message.supervisor') }}</label>
+                            <label for="to_supervisor_id" class="form-label">{{ __('paymentmaster::message.supervisor') }}</label>
                             <select id="to_supervisor_id" name="to_supervisor_id" class="select2 form-select">
                                 <option value="">{{ __('message.common.select') }}</option>
-                                @if ($to_supervisors->count() > 0)
-                                @foreach ($to_supervisors as $value)
-                                <option value="{{ $value->id }}">{{ $value->name }}
-                                </option>
-                                @endforeach
-                                @endif
                             </select>
                             <span class="invalid-feedback d-block" id="error_to_supervisor_id" role="alert"></span>
                         </div>
 
-
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
-                            <label class="form-label" for="amount">{{ __('paymentmaster::message.amount') }} <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="amount" id="amount"
-                                placeholder="{{ __('paymentmaster::message.amount') }}">
+                            <label class="form-label" for="amount">{{ __('paymentmaster::message.amount') }} <span class="text-danger">*</span></label>
+                            <input type="text" min="0.1" class="form-control number" name="amount" id="amount" placeholder="{{ __('paymentmaster::message.amount') }}">
                             <span class="invalid-feedback d-block" id="error_amount" role="alert"></span>
                         </div>
 
-
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
-                            <label class="form-label" for="remark">{{ __('paymentmaster::message.remark') }}
-                            </label>
+                            <label class="form-label" for="remark">{{ __('paymentmaster::message.remark') }}</label>
                             <textarea class="form-control" name="remark" id="remark"> </textarea>
-                            <span class="invalid-feedback d-block" id="error_remark"
-                                role="alert">{{ $errors->first('remark') }}</span>
+                            <span class="invalid-feedback d-block" id="error_remark" role="alert">{{ $errors->first('remark') }}</span>
                         </div>
 
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 mt-1">
-                            <button type="button" data-bs-dismiss="modal" aria-label="Close"
-                                class="btn btn-sm btn-label-secondary float-start">{{ __('message.common.cancel') }}</button>
-                            <button type="submit" class="btn btn-sm btn-primary float-end save"
-                                data-route="{{ route('paymentmaster.store') }}">{{ __('message.common.submit') }}</button>
+                            <button type="button" data-bs-dismiss="modal" aria-label="Close" class="btn btn-sm btn-label-secondary float-start">{{ __('message.common.cancel') }}</button>
+                            <button type="submit" class="btn btn-sm btn-primary float-end save" data-route="{{ route('paymentmaster.store') }}">{{ __('message.common.submit') }}</button>
                         </div>
                     </div>
                 </form>
@@ -269,6 +246,15 @@
             }
         });
     });
+
+    $(document).on('input', '.number', function(e) {
+        const value = e.target.value;
+        const validValue = value
+            .replace(/[^0-9.]/g, '')
+            .replace(/(\..*?)\..*/g, '$1');
+        e.target.value = validValue;
+    });
+
     $("#inlineModal").on("hidden.bs.modal", function(e) {
         $(this).find('form').trigger('reset');
         $("#id").val("");
@@ -321,6 +307,9 @@
             supervisor_id: {
                 required: true,
             },
+            to_supervisor_id: {
+                required: true,
+            },
             amount: {
                 required: true,
             },
@@ -331,6 +320,9 @@
                 required: "{{ __('paymentmaster::message.select_site') }}",
             },
             supervisor_id: {
+                required: "{{ __('paymentmaster::message.select_supervisor') }}",
+            },
+            to_supervisor_id: {
                 required: "{{ __('paymentmaster::message.select_supervisor') }}",
             },
             amount: {
@@ -351,36 +343,44 @@
         }
     });
 
-    //  $(document).ready(function() {
-    //     flatpickr('.flatpickr-date', {
-    //         enableTime: false,
-    //         dateFormat: 'd-m-Y',
-    //         defaultDate: today,
-    //         maxDate: new Date(),
-    //         appendTo: document.getElementById('inlineModal')
-    //     });
-    // });
 
-    $('#filter_button').click(function() {
-        table.ajax.reload();
-    });
-
-    $(document).ready(function() {
-        flatpickr('.flatpickr-date', {
-            enableTime: false,
-            dateFormat: 'd-m-Y',
-            defaultDate: '',
-            maxDate: new Date(),
-        });
-    });
-
-
-    $('#reset_button').click(function() {
-        $('#supervisor_id').val('');
-        $('#to_supervisor_id').val('');
-        $('#start_date').val('');
-        $('#end_date').val('');
-        table.ajax.reload();
+    $(document).on('change', '.site-change', function(e) {
+        e.preventDefault();
+        var id = $(this).val();
+        if (id != '') {
+            $("#to_supervisor_id").append(`<option value="" selected><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Wait</option>`);
+            var route = "{{ route('get-site-supervisor') }}";
+            $.ajax({
+                type: "get",
+                url: route,
+                dataType: 'json',
+                data: {
+                    "id": id,
+                    "_token": "{{ csrf_token() }}",
+                },
+                success: function(response) {
+                    if (response.status_code == 200) {
+                        $("#to_supervisor_id").empty();
+                        $("#to_supervisor_id").append(`<option value="" selected>{{ __('message.common.select') }}</option>`);
+                        if (response.result.length > 0) {
+                            $.each(response.result, function(index, row) {
+                                if (row.id != $('#supervisor_id').val()) {
+                                    $("#to_supervisor_id").append($("<option value='" + row.id + "'>" + row.name + "</option>"));
+                                }
+                            });
+                        } else {
+                            toastr.warning('Supervisor not found.', "Warning");
+                        }
+                    } else if (response.status_code == 201 || response.status_code == 404) {
+                        toastr.warning(response.message, "Warning");
+                    } else {
+                        toastr.error(response.message, "Opps!");
+                    }
+                }
+            });
+        } else {
+            $('#to_supervisor_id').val('').trigger('change');
+        }
     });
 </script>
 <script src="{{ asset('assets/custom/save.js') }}"></script>

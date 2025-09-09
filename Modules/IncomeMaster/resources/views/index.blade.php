@@ -374,6 +374,7 @@
             $(element).closest('.custom-input-group').append(error);
         }
     });
+    
 </script>
 <script src="{{asset('assets/custom/filter.js')}}"></script>
 <script src="{{ asset('assets/custom/save.js') }}"></script>
