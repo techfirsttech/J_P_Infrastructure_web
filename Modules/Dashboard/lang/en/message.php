@@ -15,4 +15,10 @@ return [
     'month' => 'Month',
     'year' => 'Year',
     'custom' => 'Custom',
+
+    'total_credit' => 'Total Credit',
+    'total_debit' => 'Total Debit',
+    'closing_balance' => 'Closing Balance', 
+    'supervisors' => 'Supervisors',
+    'site' => 'Site',
 ];

@@ -47,7 +47,7 @@
                         <div class="col-12 col-md-4 col-lg-2">
                             <label for="filter_party_id" class="form-label">{{ __('incomemaster::message.party') }}</label>
                             <select id="filter_party_id" name="filter_party_id" class="select2 form-select">
-                                <option value="">{{ __('message.common.select') }}</option>
+                                <option value="All">{{ __('message.common.all') }}</option>
                                 @foreach ($party as $value)
                                 <option value="{{ $value->id }}">{{ $value->party_name }}</option>
                                 @endforeach
@@ -233,7 +233,7 @@
                 },
                 {
                     data: 'party_name',
-                    name: 'party.party_name'
+                    name: 'parties.party_name'
                 },
                 {
                     data: 'amount',

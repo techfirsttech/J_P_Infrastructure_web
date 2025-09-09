@@ -38,7 +38,6 @@
 
 <div class="dashboard_render"></div>
 
-
 <button class="btn btn-primary dashboard-filter-btn" type="button" data-bs-toggle="offcanvas"
     data-bs-target="#offcanvasEnd" aria-controls="offcanvasEnd">
     <i class="fas fa-filter"></i>
@@ -118,11 +117,16 @@
                     <input type="text" class="form-control flatpickr" name="de_date" id="de_date" autocomplete="off" placeholder="{{ __('message.common.end_date') }}" readonly>
                 </div>
             </div>
-            <button type="button" class="btn btn-primary mb-2 d-grid w-100 custom-date d-none">{{ __('message.dashboard.filter') }}</button>
+            <button type="button" class="btn btn-primary filter-now mb-2 d-grid w-100 custom-date d-none">{{ __('message.dashboard.filter') }}</button>
         </div>
     </div>
 </div>
-
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="detailModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered align-items-start modal-lg">
+        <div class="modal-content" id="modal_content">
+        </div>
+    </div>
+</div>
 @endsection
 @section('pagescript')
 <script>
@@ -142,7 +146,6 @@
 
         if (filterValue == 'custom') {
             $('.custom-date').removeClass('d-none');
-
         } else {
             $('.custom-date').addClass('d-none');
             $('#ds_date').val('');
@@ -151,22 +154,22 @@
         }
     });
 
-    $('.btn-primary').on('click', function() {
+    $('.filter-now').on('click', function() {
         const selectedFilter = $('input[name="filter_type"]:checked').val();
         if (selectedFilter === 'custom') {
             const startDate = $('#ds_date').val();
             const endDate = $('#de_date').val();
-            if (!startDate || !endDate) {
-                alert('Please select both start and end dates.');
-                return;
-            }
+            // if (!startDate || !endDate) {
+            //     alert('Please select both start and end dates.');
+            //     return;
+            // }
             submitFilterForm(selectedFilter, startDate, endDate);
         }
     });
 
     function submitFilterForm(filterType, startDate = null, endDate = null) {
         var loaderimg = "{{ asset('assets/img/loader.gif') }}";
-        // $('.dashboard_render').html('<div class="row mt-5 pt-5"><div class="col-12 text-center mt-5 pt-5"><img src="'+loaderimg+'" width="100px" /></div></div>');
+        $('.dashboard_render').html('<div class="row mt-5 pt-5"><div class="col-12 text-center mt-5 pt-5"><img src="' + loaderimg + '" width="100px" /></div></div>');
 
         $.ajax({
             url: "{{ route('dashboard-filter') }}",
@@ -190,5 +193,33 @@
             }
         });
     }
+
+    $(document).on('click', '.view', function(e) {
+        e.preventDefault();
+        var id = $(this).attr('data-id');
+        var name = $(this).attr('data-name');
+        if (id != '') {
+            const selectedFilter = $('input[name="filter_type"]:checked').val();
+            var route = "{{route('dashboard-model')}}";
+            $.ajax({
+                type: "POST",
+                url: route,
+                dataType: 'json',
+                data: {
+                    "id": id,
+                    filter_type: selectedFilter,
+                    s_date: $('#ds_date').val(),
+                    e_date: $('#de_date').val(),
+                    "_token": "{{ csrf_token() }}",
+                },
+                success: function(response) {
+                    $("#exampleModal").modal("show");
+                    $("#modal_content").html('');
+                    $("#modal_content").html(response.html);
+                    $("#detailModalTitle").html("{{ __('sitemaster::message.siteName') }} : " + name);
+                }
+            });
+        }
+    });
 </script>
 @endsection

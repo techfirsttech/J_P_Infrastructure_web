@@ -69,50 +69,6 @@ class IncomeMasterController extends Controller
                 }
             })->orderBy('income_masters.date', 'DESC');
 
-        // $query = IncomeMaster::select(
-        //         'income_masters.id',
-        //         'income_masters.user_id',
-        //         'income_masters.site_id',
-        //         'income_masters.supervisor_id',
-        //         'income_masters.amount',
-        //         'income_masters.remark',
-        //         DB::raw("DATE_FORMAT(income_masters.date, '%d-%m-%Y') as date"),
-        //         'site_masters.site_name',
-        //         'supervisor.name as supervisor_name',
-        //         'user.name as user_name',
-        //     )
-        //         ->leftJoin('site_masters', 'income_masters.site_id', '=', 'site_masters.id')
-        //         ->leftJoin('users as supervisor', 'supervisor.id', '=', 'income_masters.supervisor_id')
-        //         ->leftJoin('users as user', 'user.id', '=', 'income_masters.user_id');
-
-        //     $user = Auth::user();
-        //     $role = $user->roles->first();
-
-        //     if ($role && $role->name === 'Supervisor') {
-        //         $query->where('income_masters.user_id', $user->id);
-        //     }
-
-        //     if ($request->filled('supervisor_id')) {
-        //         $query->where('income_masters.supervisor_id', $request->supervisor_id);
-        //     }
-
-        //     if ($request->filled('site_id')) {
-        //         $query->where('income_masters.site_id', $request->site_id);
-        //     }
-
-        //     if ($request->filled('start_date') && $request->filled('end_date')) {
-        //         $startDate = Carbon::parse($request->start_date)->startOfDay();
-        //         $endDate = Carbon::parse($request->end_date)->endOfDay();
-        //         $query->whereBetween('income_masters.created_at', [$startDate, $endDate]);
-        //     } elseif ($request->filled('start_date')) {
-        //         $startDate = Carbon::parse($request->start_date)->startOfDay();
-        //         $query->where('income_masters.created_at', '>=', $startDate);
-        //     } elseif ($request->filled('end_date')) {
-        //         $endDate = Carbon::parse($request->end_date)->endOfDay();
-        //         $query->where('income_masters.created_at', '<=', $endDate);
-        //     }
-
-        //      $incomeMaster = $query->orderBy('income_masters.id', 'DESC')->get();
         if (request()->ajax()) {
             return DataTables::of($query)
                 ->addIndexColumn()
@@ -142,49 +98,6 @@ class IncomeMasterController extends Controller
             return view('incomemaster::index', compact('siteMaster', 'supervisor', 'party'));
         }
     }
-    // public function index()
-    // {
-    //     $incomeMaster = IncomeMaster::select(
-    //         'income_masters.id',
-    //         'income_masters.user_id',
-    //         'income_masters.site_id',
-    //         'income_masters.supervisor_id',
-    //         'income_masters.amount',
-    //         'income_masters.remark',
-    //         'site_masters.site_name',
-    //         'supervisor.name as supervisor_name',
-    //         'user.name as user_name',
-    //     )
-    //         ->leftJoin('site_masters', 'income_masters.site_id', '=', 'site_masters.id')
-    //         ->leftJoin('users as supervisor', 'supervisor.id', '=', 'income_masters.supervisor_id')
-    //         ->leftJoin('users as user', 'user.id', '=', 'income_masters.user_id')
-    //         ->orderBy('income_masters.id', 'DESC')
-    //         ->get();
-    //     if (request()->ajax()) {
-    //         return DataTables::of($incomeMaster)
-    //             ->addIndexColumn()
-    //             ->addColumn('action', function ($row) {
-    //                 $flag = true;
-    //                 $show = '';
-    //                 $edit = true ? 'income-master-edit' : '';
-    //                 $delete = $flag ? 'income-master-delete' : '';
-    //                 $showURL = "";
-    //                 $editURL = "";
-    //                 return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL'));
-    //             })
-    //             ->escapeColumns([])
-    //             ->make(true);
-    //     } else {
-    //         $siteMaster = SiteMaster::get();
-    //         $supervisor = User::select('id', 'name')
-    //             ->whereHas('roles', function ($q) {
-    //                 $q->where('name', 'supervisor');
-    //             })
-    //             ->orderBy('id', 'DESC')
-    //             ->get();
-    //         return view('incomemaster::index',compact('siteMaster','supervisor'));
-    //     }
-    // }
 
     public function create()
     {
