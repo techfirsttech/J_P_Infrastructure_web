@@ -22,8 +22,8 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         $query = Attendance::with('site', 'contractor', 'user', 'labour')
-            ->when(!role_super_admin(), function ($q) {
-                return $q->where('user_id', Auth::id());
+            ->when(role_supervisor(), function ($q) {
+                return $q->where('created_by', Auth::id());
             })
             ->when(!empty($request->leave_type) && $request->leave_type !== 'All', function ($query) use ($request) {
                 $query->where('type', $request->leave_type);
@@ -236,7 +236,7 @@ class AttendanceController extends Controller
 
     public function show($id, Request $request)
     {
-        //
+//
     }
 
     public function edit($id)
@@ -412,5 +412,5 @@ class AttendanceController extends Controller
         }
     }
 
-   
+
 }
