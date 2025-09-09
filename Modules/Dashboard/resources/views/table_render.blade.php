@@ -43,9 +43,9 @@
                         @foreach($supervisorData as $item)
                         <tr>
                             <td>{{ $item->supervisor_name }}</td>
-                            <td class="text-end pe-3">{{ $item->total_credit }}</td>
-                            <td class="text-end pe-3">{{ $item->total_debit }}</td>
-                            <td class="text-end pe-3">{{ $item->closing_balance }}</td>
+                            <td class="text-end pe-3">{{ number_format($item->total_credit, 2) }}</td>
+                            <td class="text-end pe-3">{{ number_format($item->total_debit, 2) }}</td>
+                            <td class="text-end pe-3">{{ number_format($item->closing_balance, 2) }}</td>
                         </tr>
                         @endforeach
                     </tbody>

@@ -24,5 +24,6 @@
     "Attendance": true,
     "Contractor": true,
     "StockTransfer": true,
-    "Party": true
+    "Party": true,
+    "Report": true
 }

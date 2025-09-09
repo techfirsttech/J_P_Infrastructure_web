@@ -1,110 +1,92 @@
 @extends('layouts.app')
-@section('title', 'Report')
+@section('title', __('report::message.attendance_report'))
 @section('content')
-    <div class="row">
-        <div class="col-12 mb-2">
-            <h5 class="content-header-title float-start mb-0">Report</h5>
-            @can('attendance-list')
-                <a href="{{ route('attendance.index') }}" role="button" class="btn btn-sm btn-primary float-end"><i
-                        class="fa fa-arrow-left me-1"></i> {{ __('message.common.back') }}</a>
-            @endcan
-        </div>
-        <div class="col-12 mb-2">
-            <div class="card">
-                <div class="card-body">
+<div class="row">
+     <div class="col-12 mb-2">
+          <h5 class="content-header-title float-start mb-0">{{ __('report::message.attendance_report') }}</h5>
+     </div>
+     <div class="col-12 mb-2">
+          <div class="card">
+               <div class="card-body">
                     <form id="filter_form" action="javascript:void(0)" method="POST">
-                        @csrf
-                        <div class="row g-2 pt-25 align-items-end">
-                            <div class="col-12 col-md-4 col-lg-2 m-0">
-                                <label class="form-label" for="s_date">{{ __('message.common.start_date') }}</label>
-                                <input type="text" class="form-control flatpickr" name="s_date" id="s_date"
-                                    value="{{ date('Y-m-d') }}" autocomplete="off"
-                                    placeholder="{{ __('message.common.start_date') }}" readonly>
-                            </div>
+                         @csrf
+                         <div class="row g-2 pt-25 align-items-end">
+                              <div class="col-12 col-md-4 col-lg-2 m-0">
+                                   <label class="form-label" for="s_date">{{ __('message.common.start_date') }}</label>
+                                   <input type="text" class="form-control flatpickr" name="s_date" id="s_date" value="{{ date('Y-m-d') }}" autocomplete="off" placeholder="{{ __('message.common.start_date') }}" readonly>
+                              </div>
 
-                            <div class="col-12 col-md-4 col-lg-2 m-0">
-                                <label class="form-label" for="e_date">{{ __('message.common.end_date') }}</label>
-                                <input type="text" class="form-control flatpickr" name="e_date" id="e_date"
-                                    value="{{ date('Y-m-d') }}" autocomplete="off"
-                                    placeholder="{{ __('message.common.end_date') }}" readonly>
-                            </div>
+                              <div class="col-12 col-md-4 col-lg-2 m-0">
+                                   <label class="form-label" for="e_date">{{ __('message.common.end_date') }}</label>
+                                   <input type="text" class="form-control flatpickr" name="e_date" id="e_date" value="{{ date('Y-m-d') }}" autocomplete="off" placeholder="{{ __('message.common.end_date') }}" readonly>
+                              </div>
 
-
-                            <div class="col-12 col-md-4 col-lg-2 m-0">
-                                <label class="form-label" for="site_id">{{ __('attendance::message.site') }}</label>
-                                <select id="site_id" name="site_id" class="form-select select2">
-                                    <option selected value="All">{{ __('message.common.all') }}</option>
-                                    @foreach ($site as $st)
+                              <div class="col-12 col-md-4 col-lg-2 m-0">
+                                   <label class="form-label" for="site_id">{{ __('attendance::message.site') }}</label>
+                                   <select id="site_id" name="site_id" class="form-select select2">
+                                        <option selected value="All">{{ __('message.common.all') }}</option>
+                                        @foreach ($site as $st)
                                         <option value="{{ $st->id }}">{{ $st->site_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                        @endforeach
+                                   </select>
+                              </div>
 
-                            <div class="col-12 col-md-4 col-lg-2 m-0">
-                                <label class="form-label"
-                                    for="contractor_id">{{ __('attendance::message.contractor') }}</label>
-                                <select id="contractor_id" name="contractor_id" class="form-select select2">
-                                    <option selected value="All">{{ __('message.common.all') }}</option>
-                                </select>
-                            </div>
+                              <div class="col-12 col-md-4 col-lg-2 m-0">
+                                   <label class="form-label" for="contractor_id">{{ __('attendance::message.contractor') }}</label>
+                                   <select id="contractor_id" name="contractor_id" class="form-select select2">
+                                        <option selected value="All">{{ __('message.common.all') }}</option>
+                                   </select>
+                              </div>
 
-                            <div class="col-12 col-md-4 col-lg-2 m-0">
-                                <label class="form-label" for="labour_id">{{ __('attendance::message.labour') }}</label>
-                                <select id="labour_id" name="labour_id" class="form-select select2">
-                                    <option selected value="All">{{ __('message.common.all') }}</option>
-                                </select>
-                            </div>
+                              <div class="col-12 col-md-4 col-lg-2 m-0">
+                                   <label class="form-label" for="labour_id">{{ __('attendance::message.labour') }}</label>
+                                   <select id="labour_id" name="labour_id" class="form-select select2">
+                                        <option selected value="All">{{ __('message.common.all') }}</option>
+                                   </select>
+                              </div>
 
-                            <div class="col-12 col-md-4 col-lg-2">
-                                <a class="btn btn-outline-warning px-3 report-pdf" href="javascript:void(0);">
-                                    <i class="fa fa-file-pdf"></i>
-                                </a>
-                                @php
-                                    $search = true;
-                                    $reset = true;
-                                    $export = false;
-                                @endphp
-                                {{ view('layouts.filter-button', compact('search', 'reset', 'export')) }}
-                            </div>
-                        </div>
+                              <div class="col-12 col-md-4 col-lg-2">
+                                   @php $search = true; $reset = true; $export = $urlPdf; @endphp
+                                   {{ view('layouts.filter-button', compact('search', 'reset', 'export')) }}
+                              </div>
+                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-        <div class="col-12">
-            <div class="card p-1">
-                <div class="card-body">
+               </div>
+          </div>
+     </div>
+     <div class="col-12">
+          <div class="card p-1">
+               <div class="card-body">
                     <table id="table" class="datatables-basic table table-hover">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>{{ __('attendance::message.labour') }}</th>
-                                <th>{{ __('attendance::message.contractor') }}</th>
-                                <th>{{ __('attendance::message.site') }}</th>
-                                <th>Full</th>
-                                <th>Half</th>
-                                <th>Absent</th>
-                                <th>Salary</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                        <tfoot>
-                            <td colspan="7" class="text-end pe-5">Total</td>
-                            <td class="total text-end pe-5">0.00</td>
-                        </tfoot>
+                         <thead>
+                              <tr>
+                                   <th>#</th>
+                                   <th>{{ __('attendance::message.labour') }}</th>
+                                   <th>{{ __('attendance::message.contractor') }}</th>
+                                   <th>{{ __('attendance::message.site') }}</th>
+                                   <th>{{ __('report::message.full') }}</th>
+                                   <th>{{ __('report::message.half') }}</th>
+                                   <th>{{ __('report::message.absent') }}</th>
+                                   <th>{{ __('report::message.salary') }}</th>
+                              </tr>
+                         </thead>
+                         <tbody>
+                         </tbody>
+                         <tfoot>
+                              <td colspan="7" class="text-end pe-5">{{ __('report::message.total') }}</td>
+                              <td class="total text-end pe-5">0.00</td>
+                         </tfoot>
                     </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
+               </div>
+          </div>
+     </div>
+</div>
 @endsection
 
 @section('pagescript')
-    <script type="application/javascript">
+<script type="application/javascript">
      'use strict';
-     const URL = "{{route('attendance.show',1)}}";
+     const URL = "{{ $url }}";
      var table = '';
      $(function() {
           table = $('#table').DataTable({
@@ -285,60 +267,7 @@
                $('#labour_id').val('All').trigger('change');
           }
      });
-
-      $(document).on('click', '.report-pdf', function() {
-        let pdfId = $(this).attr('data-id');
-        let obj = $(this);
-        let s_date = $('#s_date').val();
-        let e_date = $('#e_date').val();
-        let site_id = $('#site_id').val();
-        let contractor_id = $('#contractor_id').val();
-        let labour_id = $('#labour_id').val();
-        if (pdfId != '') {
-            $.ajax({
-                type: "POST",
-                url: "{{route('report-pdf')}}",
-               data: {
-                    s_date: s_date,
-                    e_date: e_date,
-                    site_id: site_id,
-                    contractor_id: contractor_id,
-                    labour_id: labour_id,
-                    "_token": "{{ csrf_token() }}"
-                },
-                dataType: 'json',
-                cache: false,
-                beforeSend: function() {
-                    $("#error_name").html('');
-                    obj.html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Wait`);
-                    obj.attr('disabled', true);
-                },
-                success: function(response) {
-                    obj.html('<i class="fa-file-pdf"></i> <span>PDF</span>');
-                    obj.attr('disabled', false);
-                    if (response.status_code == 200) {
-                        const link = document.createElement('a');
-                        link.href = response.file_url;
-                        link.download = response.file_name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        toastr.success(response.message, "Success");
-                    } else {
-                        toastr.error(response.message, "Error");
-                    }
-                },
-                error: function(error) {
-                    obj.html('<i class="fa-file-pdf"></i> <span>pdf</span>');
-                    obj.attr('disabled', false);
-                    toastr.error("An error occurred while generating the PDF", "Error");
-                }
-            });
-        } else {
-            toastr.error("Pdf not generated", "Error");
-        }
-    });
 </script>
-    <script src="{{ asset('assets/custom/filter.js') }}"></script>
-    <script src="{{ asset('assets/custom/delete.js') }}"></script>
+<script src="{{ asset('assets/custom/filter.js') }}"></script>
+<script src="{{ asset('assets/custom/delete.js') }}"></script>
 @endsection

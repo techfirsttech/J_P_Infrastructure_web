@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Ledger</title>
+    <title>{{ __('report::message.ledger_report') }}</title>
     <link href="{{ public_path('assets/css/common-pdf.css') }}" rel="stylesheet">
 
     <style>
@@ -60,7 +60,7 @@
         }
 
         .margin-top-25 {
-            margin-top: 25px;
+            margin-top: 10px;
         }
 
         .text-success {
@@ -75,17 +75,17 @@
 
 <body>
     <main>
-        <h2 class="text-center pb-10">Payment Ledger</h2>
+        <h2 class="text-center pb-10">{{ __('report::message.ledger_report') }}</h2>
         <table class="border-tbl margin-top-25">
             <thead>
                 <tr>
-                    <th class="text-center" width="5%">No.</th>
-                    <th class="text-center">Date</th>
-                    <th class="text-center">Site</th>
-                    <th class="text-center">Supervisor</th>
-                    <th class="text-center">Remark</th>
-                    <th class="text-center">Credit</th>
-                    <th class="text-center">Debit</th>
+                    <th class="text-center" width="5%">#</th>
+                    <th class="text-center">{{ __('message.common.date') }}</th>
+                    <th class="text-center">{{ __('report::message.site') }}</th>
+                    <th class="text-center">{{ __('report::message.supervisor') }}</th>
+                    <th class="text-center">{{ __('report::message.remark') }}</th>
+                    <th class="text-center">{{ __('report::message.credit') }}</th>
+                    <th class="text-center">{{ __('report::message.debit') }}</th>
                 </tr>
             </thead>
 
@@ -119,9 +119,9 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="5" class="text-nowarp text-end"> Closing Balance : {{ number_format($totalIncome - $totalExpense, 2) }}</th>
-                    <th class="text-nowarp text-end">Total Inc. : {{ number_format($totalIncome, 2) }}</th>
-                    <th class="text-nowarp text-end">Total Exp. : {{ number_format($totalExpense, 2) }}</th>
+                        <th colspan="5" class="text-nowarp text-end"> {{ __('report::message.closing_balance') }} : {{ number_format($totalIncome - $totalExpense, 2) }}</th>
+                    <th class="text-nowarp text-end"> {{ __('report::message.total') }} Inc. : {{ number_format($totalIncome, 2) }}</th>
+                    <th class="text-nowarp text-end"> {{ __('report::message.total') }} Exp. : {{ number_format($totalExpense, 2) }}</th>
                 </tr>
             </tfoot>
         </table>
