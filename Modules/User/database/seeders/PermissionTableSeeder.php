@@ -131,7 +131,6 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'StockTransfer', 'name' => 'stock-transfer-edit', 'title' => 'Edit'],
             ['title_tag' => 'StockTransfer', 'name' => 'stock-transfer-delete', 'title' => 'Delete'],
 
-            ['title_tag' => 'Payment_Master', 'name' => 'payment-ledger-list', 'title' => 'Ledger'],
 
             ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-list', 'title' => 'List'],
             ['title_tag' => 'Payment_Transfer', 'name' => 'payment-transfer-create', 'title' => 'Create'],
@@ -141,6 +140,8 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'Party', 'name' => 'party-edit', 'title' => 'Edit'],
             ['title_tag' => 'Party', 'name' => 'party-delete', 'title' => 'Delete'],
 
+            ['title_tag' => 'Report', 'name' => 'report-ledger-list', 'title' => 'Ledger Report'],
+            ['title_tag' => 'Report', 'name' => 'report-attendance-list', 'title' => 'Attendance Report'],
         ];
 
         foreach ($permissions as $permissionData) {

@@ -5,11 +5,6 @@ use Modules\ExpenseMaster\Http\Controllers\ExpenseMasterController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('expensemasters', ExpenseMasterController::class)->names('expensemaster');
-
     Route::post('expense-status-change', [ExpenseMasterController::class, 'statusChange'])->name('expense-status-change');
-
-    Route::get('payment-ledger', [ExpenseMasterController::class, 'paymentLedger'])->name('payment-ledger');
-    Route::get('ledger-pdf', [ExpenseMasterController::class, 'paymentLedgerPdf'])->name('ledger-pdf');
-
 
 });

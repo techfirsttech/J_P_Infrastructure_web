@@ -5,9 +5,6 @@
      <div class="col-12 mb-2">
           <h5 class="content-header-title float-start mb-0">{{ __('attendance::message.list') }}</h5>
           <a href="{{ route('attendance.create') }}" role="button" class="btn btn-sm btn-primary float-end mx-1"><i class="fa fa-plus me-1"></i> {{ __('message.common.addNew') }}</a>
-          @can('attendance-list')
-          <a href="{{ route('attendance.show',1) }}" role="button" class="btn btn-sm btn-success float-end mx-1"><i class="fa fa-eye me-1"></i> Report</a>
-          @endcan
      </div>
      <div class="col-12 mb-2">
           <div class="card">
@@ -84,7 +81,6 @@
           </div>
      </div>
 </div>
-
 @endsection
 
 @section('pagescript')

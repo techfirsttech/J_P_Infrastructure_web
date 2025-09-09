@@ -3,7 +3,6 @@
 namespace Modules\Attendance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -14,8 +13,6 @@ use Modules\Attendance\Models\Attendance;
 use Modules\Contractor\Models\Contractor;
 use Modules\Labour\Models\Labour;
 use Modules\SiteMaster\Models\SiteMaster;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Modules\SiteMaster\Models\SiteSupervisor;
 use Modules\User\Models\User;
 use Yajra\DataTables\Facades\DataTables;
@@ -103,59 +100,6 @@ class AttendanceController extends Controller
             return view('attendance::index', compact('site'));
         }
     }
-
-    //  public function index(Request $request)
-    // {
-    //     $query = Attendance::select(
-    //         DB::raw('MIN(attendances.id) as id'),
-    //         'attendances.site_id',
-    //         'site_masters.site_name',
-    //         'attendances.contractor_id',
-    //         'contractors.contractor_name',
-    //         DB::raw('GROUP_CONCAT(DISTINCT users.name SEPARATOR ", ") as supervisors'),
-    //         DB::raw('COUNT(attendances.id) as total_records')
-    //     )
-    //         ->leftJoin('site_masters', 'site_masters.id', '=', 'attendances.site_id')
-    //         ->leftJoin('users', 'users.id', '=', 'attendances.supervisor_id')
-    //         ->leftJoin('contractors', 'contractors.id', '=', 'attendances.contractor_id')
-    //         ->groupBy('attendances.site_id', 'site_masters.site_name', 'attendances.contractor_id', 'contractors.contractor_name');
-
-    //     $user = Auth::user();
-    //     $role = $user->roles->first();
-
-    //     if ($role && $role->name === 'Supervisor') {
-    //         $query->where('attendances.supervisor_id', $user->id);
-    //     }
-
-    //     if ($request->filled('supervisor_id')) {
-    //         $query->where('attendances.supervisor_id', $request->supervisor_id);
-    //     }
-    //     if ($request->filled('site_id')) {
-    //         $query->where('attendances.site_id', $request->site_id);
-    //     }
-    //     if ($request->filled('contractor_id')) {
-    //         $query->where('attendances.contractor_id', $request->contractor_id);
-    //     }
-
-    //     if (request()->ajax()) {
-    //         return DataTables::of($query)
-    //             ->addIndexColumn()
-    //             ->addColumn('action', function ($row) {
-    //                 $show = 'attendance-list';
-    //                 $edit = '';
-    //                 $delete = '';
-    //                 $assign = '';
-    //                 $showURL = route('attendance.show',  $row->id);
-    //                 // $showURL = route('attendance.show', $row->contractor_id);
-    //                 $editURL = route('attendance.edit', $row->id);
-    //                 return view('layouts.action', compact('row', 'show', 'edit', 'delete', 'showURL', 'editURL', 'assign'));
-    //             })
-    //             ->escapeColumns([])
-    //             ->make(true);
-    //     } else {
-    //         return view('attendance::index');
-    //     }
-    // }
 
     public function getLaboursByDateContractor(Request $request)
     {
@@ -292,87 +236,7 @@ class AttendanceController extends Controller
 
     public function show($id, Request $request)
     {
-        $query = Attendance::select(
-            'attendances.site_id',
-            'attendances.contractor_id',
-            'attendances.labour_id',
-            DB::raw("SUM(amount) as salary"),
-            DB::raw("SUM(CASE WHEN attendances.type = 'Full' THEN 1 ELSE 0 END) as full_count"),
-            DB::raw("SUM(CASE WHEN attendances.type = 'Half' THEN 1 ELSE 0 END) as half_count"),
-            DB::raw("SUM(CASE WHEN attendances.type = 'Absent' THEN 1 ELSE 0 END) as absent_count"),
-            DB::raw("COUNT(*) as total_days")
-        )
-            ->with('labour', 'contractor', 'site', 'user')
-            ->when(!role_super_admin(), function ($q) {
-                return $q->where('attendances.user_id', Auth::id());
-            })
-            ->when(!empty($request->leave_type) && $request->leave_type !== 'All', function ($query) use ($request) {
-                $query->where('attendances.type', $request->leave_type);
-            })
-            ->when(!empty($request->site_id) && $request->site_id !== 'All', function ($query) use ($request) {
-                $query->where('attendances.site_id', $request->site_id);
-            })
-            ->when(!empty($request->contractor_id) && $request->contractor_id !== 'All', function ($query) use ($request) {
-                $query->where('attendances.contractor_id', $request->contractor_id);
-            })
-            ->when(!empty($request->labour_id) && $request->labour_id !== 'All', function ($query) use ($request) {
-                $query->where('attendances.labour_id', $request->labour_id);
-            })
-            ->when(!empty($request->s_date) || !empty($request->e_date), function ($query) use ($request) {
-                $startDate = !empty($request->s_date)
-                    ? date('Y-m-d 00:00:00', strtotime($request->s_date))
-                    : null;
-
-                $endDate = !empty($request->e_date)
-                    ? date('Y-m-d 23:59:59', strtotime($request->e_date))
-                    : ($startDate ? date('Y-m-d 23:59:59', strtotime($request->s_date)) : null);
-
-                if ($startDate && $endDate) {
-                    $query->whereBetween('attendances.date', [$startDate, $endDate]);
-                } elseif ($startDate) {
-                    $query->where('attendances.date', '>=', $startDate);
-                } elseif ($endDate) {
-                    $query->where('attendances.date', '<=', $endDate);
-                }
-            })
-            ->groupBy('attendances.labour_id', 'attendances.site_id', 'attendances.contractor_id');
-
-        if (request()->ajax()) {
-            return DataTables::of($query)
-                ->addIndexColumn()
-                ->addColumn('labour_name', function ($row) {
-                    return $row->labour?->labour_name ?? 'N/A';
-                })
-                ->addColumn('contractor_name', function ($row) {
-                    return $row->contractor?->contractor_name ?? 'N/A';
-                })
-                ->addColumn('site_name', function ($row) {
-                    return $row->site?->site_name ?? 'N/A';
-                })
-                ->addColumn('user_name', function ($row) {
-                    return $row->user?->name ?? 'N/A';
-                })
-                ->addColumn('full_count', function ($row) {
-                    return $row->full_count;
-                })
-                ->addColumn('half_count', function ($row) {
-                    return $row->half_count;
-                })
-                ->addColumn('absent_count', function ($row) {
-                    return $row->absent_count;
-                })
-                ->addColumn('total_days', function ($row) {
-                    return $row->total_days;
-                })
-                ->addColumn('salary', function ($row) {
-                    return number_format($row->salary, 2);
-                })
-                ->escapeColumns([])
-                ->make(true);
-        } else {
-            $site = SiteMaster::select('id', 'site_name')->get();
-            return view('attendance::show', compact('site'));
-        }
+        //
     }
 
     public function edit($id)
@@ -480,7 +344,6 @@ class AttendanceController extends Controller
         }
     }
 
-
     public function getContractor(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -500,74 +363,6 @@ class AttendanceController extends Controller
             return response(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
         }
     }
-    // public function getContractorLabour(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'id' => 'required|integer',
-
-    //     ], [
-    //         'site_id.required' => 'Site ID is required.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json(['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()]);
-    //     }
-    //     try {
-    //         $query = Labour::select('id', 'labour_name')->where('contractor_id', $request->id)->get();
-
-    //         return response(['status_code' => 200, 'message' => 'Labour List', 'result' => $query]);
-    //     } catch (Exception $e) {
-    //         return response(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
-    //     }
-    // }
-
-    // public function getContractorLabour(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'id'   => 'required|integer',
-    //         'date' => 'required|date_format:d-m-Y', // frontend mathi aa format ma aave che
-    //     ], [
-    //         'id.required'   => 'Contractor ID is required.',
-    //         'date.required' => 'Date is required.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status_code' => 201,
-    //             'message'     => 'Please input proper data.',
-    //             'errors'      => $validator->errors()
-    //         ]);
-    //     }
-
-    //     try {
-    //         $date = Carbon::createFromFormat('d-m-Y', $request->date)->format('Y-m-d');
-
-    //         $labours = Labour::select('id', 'labour_name')
-    //             ->where('contractor_id', $request->id)
-    //             ->get();
-
-    //         foreach ($labours as $labour) {
-    //             $attendance = Attendance::where('labour_id', $labour->id)
-    //                 ->whereDate('date', $date)
-    //                 ->first();
-
-    //             // agar attendance already save hoy to e value mukvi, otherwise "Absent"
-    //             $labour->attendance_type = $attendance ? $attendance->type : 'Absent';
-    //         }
-
-    //         return response([
-    //             'status_code' => 200,
-    //             'message'     => 'Labour List',
-    //             'result'      => $labours
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response([
-    //             'status_code' => 500,
-    //             'message'     => 'Something went wrong. Please try again.',
-    //             'error'       => $e->getMessage()
-    //         ]);
-    //     }
-    // }
 
     public function getContractorLabour(Request $request)
     {
@@ -617,83 +412,5 @@ class AttendanceController extends Controller
         }
     }
 
-    public function reportPdf(Request $request)
-    {
-        try {
-            $query = Attendance::select(
-                'attendances.site_id',
-                'attendances.contractor_id',
-                'attendances.labour_id',
-                DB::raw("SUM(amount) as salary"),
-                DB::raw("SUM(CASE WHEN attendances.type = 'Full' THEN 1 ELSE 0 END) as full_count"),
-                DB::raw("SUM(CASE WHEN attendances.type = 'Half' THEN 1 ELSE 0 END) as half_count"),
-                DB::raw("SUM(CASE WHEN attendances.type = 'Absent' THEN 1 ELSE 0 END) as absent_count"),
-                DB::raw("COUNT(*) as total_days")
-            )
-                ->with('labour', 'contractor', 'site', 'user')
-                ->when(!role_super_admin(), function ($q) {
-                    return $q->where('attendances.user_id', Auth::id());
-                })
-                ->when(!empty($request->leave_type) && $request->leave_type !== 'All', function ($query) use ($request) {
-                    $query->where('attendances.type', $request->leave_type);
-                })
-                ->when(!empty($request->site_id) && $request->site_id !== 'All', function ($query) use ($request) {
-                    $query->where('attendances.site_id', $request->site_id);
-                })
-                ->when(!empty($request->contractor_id) && $request->contractor_id !== 'All', function ($query) use ($request) {
-                    $query->where('attendances.contractor_id', $request->contractor_id);
-                })
-                ->when(!empty($request->labour_id) && $request->labour_id !== 'All', function ($query) use ($request) {
-                    $query->where('attendances.labour_id', $request->labour_id);
-                })
-                ->when(!empty($request->s_date) || !empty($request->e_date), function ($query) use ($request) {
-                    $startDate = !empty($request->s_date)
-                        ? date('Y-m-d 00:00:00', strtotime($request->s_date))
-                        : null;
-
-                    $endDate = !empty($request->e_date)
-                        ? date('Y-m-d 23:59:59', strtotime($request->e_date))
-                        : ($startDate ? date('Y-m-d 23:59:59', strtotime($request->s_date)) : null);
-
-                    if ($startDate && $endDate) {
-                        $query->whereBetween('attendances.date', [$startDate, $endDate]);
-                    } elseif ($startDate) {
-                        $query->where('attendances.date', '>=', $startDate);
-                    } elseif ($endDate) {
-                        $query->where('attendances.date', '<=', $endDate);
-                    }
-                })
-                ->groupBy('attendances.labour_id', 'attendances.site_id', 'attendances.contractor_id');
-            // PDF data
-
-            $attendanceData = $query->get();
-            // dd($attendanceData);
-
-            $data = [
-                'title' => 'Salary Report',
-                'attendanceData' => $attendanceData,
-                'filters' => $request->all()
-            ];
-
-            $pdf = Pdf::loadView('attendance::report-pdf', $data);
-            $pdf->setPaper('A4', 'portrait');
-
-            $fileName = 'report-' . Str::random(10) . '.pdf';
-            $folder = 'report';
-            $fileRelativePath = $folder . '/' . $fileName;
-
-            Storage::disk('public')->put($fileRelativePath, $pdf->output());
-            $fileUrl = url('public/storage/' . $fileRelativePath);
-
-            if (!is_null($query)) {
-                $response = ['status_code' => 200, 'message' => 'Pdf generated successfully.', 'file_url' => $fileUrl, 'file_name' => $fileName];
-            } else {
-                $response = ['status_code' => 500, 'message' => 'Pdf can not generated.'];
-            }
-            return response()->json($response);
-        } catch (\Exception $e) {
-            dd($e);
-            return response()->json(array('status_code' => 500, 'message' => 'Something went wrong. Please try again.'));
-        }
-    }
+   
 }
