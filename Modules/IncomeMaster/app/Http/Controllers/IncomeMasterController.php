@@ -43,7 +43,7 @@ class IncomeMasterController extends Controller
             ->leftJoin('users as supervisor', 'supervisor.id', '=', 'income_masters.supervisor_id')
             ->leftJoin('parties', 'parties.id', '=', 'income_masters.party_id')
             ->when(role_supervisor(), function ($q) {
-                return $q->where('user_id', Auth::id());
+                return $q->where('income_masters.supervisor_id', Auth::id());
             })
             ->when(!empty($request->site_id) && $request->site_id !== 'All', function ($query) use ($request) {
                 $query->where('income_masters.site_id', $request->site_id);

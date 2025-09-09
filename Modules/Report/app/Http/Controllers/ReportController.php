@@ -45,7 +45,7 @@ class ReportController extends Controller
             ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
             ->leftJoin('users as supervisor', 'supervisor.id', '=', 'payment_masters.supervisor_id')
             ->when(role_supervisor(), function ($q) {
-                return $q->where('user_id', Auth::id());
+                return $q->where('payment_masters.supervisor_id', Auth::id());
             })
             ->when(!empty($request->site_id) && $request->site_id !== 'All', function ($query) use ($request) {
                 $query->where('payment_masters.site_id', $request->site_id);
@@ -113,7 +113,7 @@ class ReportController extends Controller
                 ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
                 ->leftJoin('users as supervisor', 'supervisor.id', '=', 'payment_masters.supervisor_id')
                 ->when(role_supervisor(), function ($q) {
-                    return $q->where('user_id', Auth::id());
+                    return $q->where('payment_masters.supervisor_id', Auth::id());
                 })
                 ->when(!empty($request->filter_site_id) && $request->filter_site_id !== 'All', function ($query) use ($request) {
                     $query->where('payment_masters.site_id', $request->filter_site_id);

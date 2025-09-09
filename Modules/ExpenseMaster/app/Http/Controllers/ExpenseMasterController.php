@@ -49,7 +49,7 @@ class ExpenseMasterController extends Controller
             ->leftJoin('users as supervisor', 'supervisor.id', '=', 'expense_masters.supervisor_id')
             ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expense_masters.expense_category_id')
             ->when(role_supervisor(), function ($q) {
-                return $q->where('user_id', Auth::id());
+                return $q->where('expense_masters.supervisor_id', Auth::id());
             })
             ->when(!empty($request->expense_category_id) && $request->expense_category_id !== 'All', function ($query) use ($request) {
                 $query->where('expense_masters.expense_category_id', $request->expense_category_id);

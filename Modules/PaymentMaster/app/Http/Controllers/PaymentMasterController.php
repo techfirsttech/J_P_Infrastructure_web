@@ -18,9 +18,6 @@ use Yajra\DataTables\Facades\DataTables;
 
 class PaymentMasterController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $query = PaymentTransfer::select(
