@@ -36,9 +36,6 @@
                             <label for="filter_supervisor_id" class="form-label">Supervisor</label>
                             <select id="filter_supervisor_id" name="filter_supervisor_id" class="select2 form-select">
                                 <option value="All">{{ __('message.common.all') }}</option>
-                                @foreach ($supervisor as $supervisors)
-                                <option value="{{ $supervisors->id }}">{{ $supervisors->name }}</option>
-                                @endforeach
                             </select>
                         </div>
 
@@ -218,41 +215,43 @@
         });
     });
 
-    $(document).on('change','.site-change', function(e) {
+    $(document).on('change', '.site-change', function(e) {
         e.preventDefault();
-          var id = $(this).val();
-          if (id != 'All') {
-               $("#filter_supervisor_id").append(`<option value="" selected><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Wait</option>`);
-               var route = "{{ route('get-site-supervisor') }}";
-               $.ajax({
-                    type: "get",
-                    url: route,
-                    dataType: 'json',
-                    data: {
-                         "id": id,
-                         "_token": "{{ csrf_token() }}",
-                    },
-                    success: function(response) {
-                         if (response.status_code == 200) {
-                              $("#filter_supervisor_id").empty();
-                              $("#filter_supervisor_id").append(`<option value="All" selected>{{ __('message.common.all') }}</option>`);
-                              if (response.result.length > 0) {
-                                   $.each(response.result, function(index, row) {
-                                        $("#filter_supervisor_id").append($("<option value='" + row.id + "'>" + row.name + "</option>"));
-                                   });
-                              } else {
-                                   toastr.warning('Supervisor not found.', "Warning");
-                              }
-                         } else if (response.status_code == 201 || response.status_code == 404) {
-                              toastr.warning(response.message, "Warning");
-                         } else {
-                              toastr.error(response.message, "Opps!");
-                         }
+        var id = $(this).val();
+        if (id != 'All') {
+            $("#filter_supervisor_id").append(`<option value="" selected><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Wait</option>`);
+            var route = "{{ route('get-site-supervisor') }}";
+            $.ajax({
+                type: "get",
+                url: route,
+                dataType: 'json',
+                data: {
+                    "id": id,
+                    "_token": "{{ csrf_token() }}",
+                },
+                success: function(response) {
+                    if (response.status_code == 200) {
+                        $("#filter_supervisor_id").empty();
+                        $("#filter_supervisor_id").append(`<option value="All" selected>{{ __('message.common.all') }}</option>`);
+                        if (response.result.length > 0) {
+                            $.each(response.result, function(index, row) {
+                                $("#filter_supervisor_id").append($("<option value='" + row.id + "'>" + row.name + "</option>"));
+                            });
+                        } else {
+                            toastr.warning('Supervisor not found.', "Warning");
+                        }
+                    } else if (response.status_code == 201 || response.status_code == 404) {
+                        toastr.warning(response.message, "Warning");
+                    } else {
+                        toastr.error(response.message, "Opps!");
                     }
-               });
-          } else {
-               $('#filter_supervisor_id').val('All').trigger('change');
-          }
+                }
+            });
+        } else {
+            $("#filter_supervisor_id").empty();
+            $("#filter_supervisor_id").append(`<option value="All" selected>{{ __('message.common.all') }}</option>`);
+            $('#filter_supervisor_id').val('All').trigger('change');
+        }
     });
 </script>
 <script src="{{ asset('assets/custom/filter.js') }}"></script>

@@ -18,7 +18,7 @@ class ReportController extends Controller
 {
     function __construct()
     {
-        $this->middleware('permission:report-ledger-list', ['only' => ['ledgerReport', 'ledgerPdf']]);
+        $this->middleware('permission:payment-ledger-list', ['only' => ['ledgerReport', 'ledgerPdf']]);
         $this->middleware('permission:report-attendance-list', ['only' => ['attendanceReport', 'attendancePdf']]);
     }
 
