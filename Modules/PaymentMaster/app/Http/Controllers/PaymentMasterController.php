@@ -138,7 +138,6 @@ class PaymentMasterController extends Controller
             $incomeMaster = new IncomeMaster();
             $incomeMaster->site_id = $request->site_id;
             $incomeMaster->supervisor_id = $request->to_supervisor_id;
-            // $incomeMaster->to_supervisor_id = $request->supervisor_id;
             $incomeMaster->amount = $request->amount;
             $incomeMaster->remark = $request->remark;
             $incomeMaster->date = date('Y-m-d');
