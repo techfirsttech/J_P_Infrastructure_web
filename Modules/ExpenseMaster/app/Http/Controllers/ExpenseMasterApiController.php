@@ -379,12 +379,20 @@ class ExpenseMasterApiController extends Controller
                     }
                 })->orderBy('payment_masters.date', 'DESC');
 
-            if (role_supervisor()) {
+            // if (role_supervisor()) {
+            //     $query->addSelect(DB::raw("CONCAT_WS('-', site_masters.site_name, to_supervisor.name) as site_name"));
+            // } else {
+            //     $query->addSelect(DB::raw("CONCAT_WS('-', site_masters.site_name, supervisor.name) as site_name"));
+            // }
+
+            if (function_exists('role_supervisor') && role_supervisor()) {
                 $query->addSelect(DB::raw("CONCAT_WS('-', site_masters.site_name, to_supervisor.name) as site_name"));
             } else {
                 $query->addSelect(DB::raw("CONCAT_WS('-', site_masters.site_name, supervisor.name) as site_name"));
             }
-        
+
+
+
             $totalExpense = (clone $query)->where('model_type', 'Expense')->sum('payment_masters.amount');
             $totalIncome = (clone $query)->where('model_type', 'Income')->sum('payment_masters.amount');
 
@@ -583,87 +591,163 @@ class ExpenseMasterApiController extends Controller
                 'payment_masters.model_type',
                 'payment_masters.model_id',
                 'payment_masters.amount',
+                'payment_masters.status',
                 'payment_masters.remark',
                 DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
-                'payment_masters.status',
                 'site_masters.site_name',
-                'users.name as supervisor_name'
+                'supervisor.name as supervisor_name',
             )
                 ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
-                ->leftJoin('users', 'users.id', '=', 'payment_masters.supervisor_id');
+                ->leftJoin('users as supervisor', 'supervisor.id', '=', 'payment_masters.supervisor_id')
+                ->when(role_supervisor(), function ($q) {
+                    return $q->where('payment_masters.supervisor_id', Auth::id());
+                })
+                ->when(!empty($request->filter_site_id) && $request->filter_site_id !== 'All', function ($query) use ($request) {
+                    $query->where('payment_masters.site_id', $request->filter_site_id);
+                })
+                ->when(!empty($request->filter_supervisor_id) && $request->filter_supervisor_id !== 'All', function ($query) use ($request) {
+                    $query->where('payment_masters.supervisor_id', $request->filter_supervisor_id);
+                })
+                ->when(!empty($request->s_date) || !empty($request->e_date), function ($query) use ($request) {
+                    $startDate = !empty($request->s_date)
+                        ? date('Y-m-d 00:00:00', strtotime($request->s_date))
+                        : null;
 
-            $user = Auth::user();
-            $role = $user->roles->first();
+                    $endDate = !empty($request->e_date)
+                        ? date('Y-m-d 23:59:59', strtotime($request->e_date))
+                        : ($startDate ? date('Y-m-d 23:59:59', strtotime($request->s_date)) : null);
 
-            if ($role && $role->name === 'Supervisor') {
-                $query->where('payment_masters.supervisor_id', $user->id);
+                    if ($startDate && $endDate) {
+                        $query->whereBetween('payment_masters.date', [$startDate, $endDate]);
+                    } elseif ($startDate) {
+                        $query->where('payment_masters.date', '>=', $startDate);
+                    } elseif ($endDate) {
+                        $query->where('payment_masters.date', '<=', $endDate);
+                    }
+                })->orderBy('payment_masters.date', 'DESC')->get();
+
+            if (!is_null($query)) {
+                $pdf = Pdf::loadView('report::ledger-pdf', compact('query'));
+
+                $filename = 'ledger-' . time() . '.pdf';
+
+                $folder = 'ledger/';
+                $path = public_path($folder);
+                $fullPath = $path . '/' . $filename;
+
+                if (!file_exists($path)) {
+                    mkdir($path, 0777, true);
+                }
+
+                $files = glob($path . '*');
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        unlink($file);
+                    }
+                }
+
+                $pdf->save($fullPath);
+                $fileUrl = asset($folder . $filename);
+                $response = ['status_code' => 200, 'message' => 'Pdf generated successfully.', 'download_url' => $fileUrl];
+            } else {
+                $response = ['status_code' => 500, 'message' => 'Pdf can not generated.'];
             }
-
-            if ($request->filled('supervisor_id')) {
-                $query->where('payment_masters.supervisor_id', $request->supervisor_id);
-            }
-            if ($request->filled('site_id')) {
-                $query->where('payment_masters.site_id', $request->site_id);
-            }
-
-            if ($request->filled('start_date') && $request->filled('end_date')) {
-                $startDate = Carbon::parse($request->start_date)->startOfDay();
-                $endDate = Carbon::parse($request->end_date)->endOfDay();
-                $query->whereBetween('payment_masters.created_at', [$startDate, $endDate]);
-            } elseif ($request->filled('start_date')) {
-                $startDate = Carbon::parse($request->start_date)->startOfDay();
-                $query->where('payment_masters.created_at', '>=', $startDate);
-            } elseif ($request->filled('end_date')) {
-                $endDate = Carbon::parse($request->end_date)->endOfDay();
-                $query->where('payment_masters.created_at', '<=', $endDate);
-            }
-
-            // Fetch data without pagination for PDF
-            $payments = $query->orderBy('payment_masters.id', 'DESC')->get();
-
-            // Format amount
-            $payments->transform(function ($item) {
-                $item->amount = floor($item->amount) == $item->amount ? (int)$item->amount : (float)$item->amount;
-                return $item;
-            });
-
-            // Totals
-            $totalExpense = $query->clone()->where('model_type', 'Expense')->sum('payment_masters.amount');
-            $totalIncome = $query->clone()->where('model_type', 'Income')->sum('payment_masters.amount');
-            $totalExpense = floor($totalExpense) == $totalExpense ? (int)$totalExpense : (float)$totalExpense;
-            $totalIncome = floor($totalIncome) == $totalIncome ? (int)$totalIncome : (float)$totalIncome;
-
-            // PDF data
-            $data = [
-                'title' => 'Ledger Report',
-                'payments' => $payments,
-                'total_expense' => $totalExpense,
-                'total_income' => $totalIncome,
-                'closing_balance' => $totalIncome - $totalExpense,
-                'filters' => $request->all()
-            ];
-
-            $pdf = Pdf::loadView('expensemaster::ledger-pdf', $data);
-            $pdf->setPaper('A4', 'portrait');
-
-            $fileName = 'ledger-' . Str::random(10) . '.pdf';
-            $folder = 'ledger';
-            $fileRelativePath = $folder . '/' . $fileName;
-
-            Storage::disk('public')->put($fileRelativePath, $pdf->output());
-            $fileUrl = url('public/storage/' . $fileRelativePath);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Ledger PDF generated successfully.',
-                'url' => $fileUrl
-            ], 200);
+            return response()->json($response);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong.',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(array('status_code' => 500, 'message' => 'Something went wrong. Please try again.'));
         }
     }
+
+    // {
+    //     try {
+    //         $query = PaymentMaster::select(
+    //             'payment_masters.id',
+    //             'payment_masters.site_id',
+    //             'payment_masters.supervisor_id',
+    //             'payment_masters.model_type',
+    //             'payment_masters.model_id',
+    //             'payment_masters.amount',
+    //             'payment_masters.remark',
+    //             DB::raw("DATE_FORMAT(payment_masters.date, '%d-%m-%Y') as date"),
+    //             'payment_masters.status',
+    //             'site_masters.site_name',
+    //             'users.name as supervisor_name'
+    //         )
+    //             ->leftJoin('site_masters', 'payment_masters.site_id', '=', 'site_masters.id')
+    //             ->leftJoin('users', 'users.id', '=', 'payment_masters.supervisor_id');
+
+    //         $user = Auth::user();
+    //         $role = $user->roles->first();
+
+    //         if ($role && $role->name === 'Supervisor') {
+    //             $query->where('payment_masters.supervisor_id', $user->id);
+    //         }
+
+    //         if ($request->filled('supervisor_id')) {
+    //             $query->where('payment_masters.supervisor_id', $request->supervisor_id);
+    //         }
+    //         if ($request->filled('site_id')) {
+    //             $query->where('payment_masters.site_id', $request->site_id);
+    //         }
+
+    //         if ($request->filled('start_date') && $request->filled('end_date')) {
+    //             $startDate = Carbon::parse($request->start_date)->startOfDay();
+    //             $endDate = Carbon::parse($request->end_date)->endOfDay();
+    //             $query->whereBetween('payment_masters.created_at', [$startDate, $endDate]);
+    //         } elseif ($request->filled('start_date')) {
+    //             $startDate = Carbon::parse($request->start_date)->startOfDay();
+    //             $query->where('payment_masters.created_at', '>=', $startDate);
+    //         } elseif ($request->filled('end_date')) {
+    //             $endDate = Carbon::parse($request->end_date)->endOfDay();
+    //             $query->where('payment_masters.created_at', '<=', $endDate);
+    //         }
+
+    //         // Fetch data without pagination for PDF
+    //         $payments = $query->orderBy('payment_masters.id', 'DESC')->get();
+
+    //         // Format amount
+    //         $payments->transform(function ($item) {
+    //             $item->amount = floor($item->amount) == $item->amount ? (int)$item->amount : (float)$item->amount;
+    //             return $item;
+    //         });
+
+    //         // Totals
+    //         $totalExpense = $query->clone()->where('model_type', 'Expense')->sum('payment_masters.amount');
+    //         $totalIncome = $query->clone()->where('model_type', 'Income')->sum('payment_masters.amount');
+    //         $totalExpense = floor($totalExpense) == $totalExpense ? (int)$totalExpense : (float)$totalExpense;
+    //         $totalIncome = floor($totalIncome) == $totalIncome ? (int)$totalIncome : (float)$totalIncome;
+
+    //         // PDF data
+    //         $data = [
+    //             'title' => 'Ledger Report',
+    //             'payments' => $payments,
+    //             'total_expense' => $totalExpense,
+    //             'total_income' => $totalIncome,
+    //             'closing_balance' => $totalIncome - $totalExpense,
+    //             'filters' => $request->all()
+    //         ];
+
+    //         $pdf = Pdf::loadView('expensemaster::ledger-pdf', $data);
+    //         $pdf->setPaper('A4', 'portrait');
+
+    //         $fileName = 'ledger-' . Str::random(10) . '.pdf';
+    //         $folder = 'ledger';
+    //         $fileRelativePath = $folder . '/' . $fileName;
+
+    //         Storage::disk('public')->put($fileRelativePath, $pdf->output());
+    //         $fileUrl = url('public/storage/' . $fileRelativePath);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Ledger PDF generated successfully.',
+    //             'url' => $fileUrl
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Something went wrong.',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 }
