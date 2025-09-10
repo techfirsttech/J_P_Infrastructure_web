@@ -111,7 +111,7 @@
                             <span class="invalid-feedback d-block" id="error_site_id" role="alert"></span>
                         </div>
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 form-group custom-input-group">
-                            <label for="to_supervisor_id" class="form-label">{{ __('paymentmaster::message.supervisor') }}</label>
+                            <label for="to_supervisor_id" class="form-label">{{ __('paymentmaster::message.supervisor') }} <span class="text-danger">*</span></label>
                             <select id="to_supervisor_id" name="to_supervisor_id" class="select2 form-select">
                                 <option value="">{{ __('message.common.select') }}</option>
                             </select>
