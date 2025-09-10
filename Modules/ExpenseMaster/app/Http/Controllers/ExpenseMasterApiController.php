@@ -380,9 +380,9 @@ class ExpenseMasterApiController extends Controller
                 })->orderBy('payment_masters.date', 'DESC');
 
             if (role_supervisor()) {
-                $query->addSelect(DB::raw("CONCAT_WS('\n', site_masters.site_name, to_supervisor.name) as site_name"));
+                $query->addSelect(DB::raw("CONCAT_WS('-', site_masters.site_name, to_supervisor.name) as site_name"));
             } else {
-                $query->addSelect(DB::raw("CONCAT_WS('\n', site_masters.site_name, supervisor.name) as site_name"));
+                $query->addSelect(DB::raw("CONCAT_WS('-', site_masters.site_name, supervisor.name) as site_name"));
             }
         
             $totalExpense = (clone $query)->where('model_type', 'Expense')->sum('payment_masters.amount');
