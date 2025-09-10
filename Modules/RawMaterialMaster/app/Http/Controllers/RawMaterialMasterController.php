@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Modules\RawMaterialCategory\Models\RawMaterialCategory;
 use Modules\RawMaterialMaster\Models\RawMaterialMaster;
-use Modules\RawMaterialMaster\Models\RawMaterialStock;
 use Modules\RawMaterialMaster\Models\RawMaterialStockTransaction;
 use Modules\SiteMaster\Models\SiteMaster;
 use Modules\StockTransfer\Models\StockTransfer;
@@ -21,7 +20,6 @@ use Yajra\DataTables\Facades\DataTables;
 
 class RawMaterialMasterController extends Controller
 {
-
     function __construct()
     {
         $this->middleware('permission:material-master-list|material-master-create|material-master-edit|material-master-delete', ['only' => ['index', 'store']]);
@@ -29,7 +27,6 @@ class RawMaterialMasterController extends Controller
         $this->middleware('permission:material-master-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:material-master-delete', ['only' => ['destroy']]);
     }
-
 
     public function index()
     {
@@ -95,7 +92,6 @@ class RawMaterialMasterController extends Controller
             'material_name.unique' => __('rawmaterialmaster::message.enter_unique_material_name'),
 
         ]);
-        // dd('aa');
 
         if ($validator->fails()) {
             $response = ['status_code' => 201, 'message' => 'Please input proper data.', 'errors' => $validator->errors()];
@@ -124,7 +120,6 @@ class RawMaterialMasterController extends Controller
                 return response()->json(['status_code' => 403, 'message' => 'Raw Material added failed.']);
             }
         } catch (\Exception $e) {
-            dd($e);
             DB::rollback();
             return response()->json(['status_code' => 500, 'message' => 'Something went wrong. Please try again.']);
         }
@@ -143,6 +138,7 @@ class RawMaterialMasterController extends Controller
         $rawMaterialMaster = RawMaterialMaster::where('id', $id)->first();
         return view('rawmaterialmaster::edit', compact('rawMaterialMaster', 'unit', 'rawMaterialCategory'));
     }
+
     public function update(Request $request, $id)
     {
         $rawMaterialMaster = RawMaterialMaster::where('id', $request->id)->first();
@@ -213,7 +209,6 @@ class RawMaterialMasterController extends Controller
             'raw_material_stock_transactions.remark',
             'raw_material_stock_transactions.created_by',
             DB::raw("DATE_FORMAT(raw_material_stock_transactions.created_at, '%d-%m-%Y') as date"),
-
             'raw_material_masters.material_name',
             'site_masters.site_name',
             'users.name as supervisor_name',
@@ -224,52 +219,42 @@ class RawMaterialMasterController extends Controller
             ->leftJoin('site_masters', 'site_masters.id', '=', 'raw_material_stock_transactions.site_id')
             ->leftJoin('users', 'users.id', '=', 'raw_material_stock_transactions.supervisor_id')
             ->leftJoin('suppliers', 'suppliers.id', '=', 'raw_material_stock_transactions.supplier_id')
-            ->leftJoin('units', 'units.id', '=', 'raw_material_stock_transactions.unit_id');
+            ->leftJoin('units', 'units.id', '=', 'raw_material_stock_transactions.unit_id')
+            ->when(role_supervisor(), function ($q) {
+                return $q->where('raw_material_stock_transactions.supervisor_id', Auth::id());
+            })
+            ->when(!empty($request->material_id) && $request->material_id !== 'All', function ($query) use ($request) {
+                $query->where('raw_material_stock_transactions.material_id', $request->material_id);
+            })
+            ->when(!empty($request->site_id) && $request->site_id !== 'All', function ($query) use ($request) {
+                $query->where('raw_material_stock_transactions.site_id', $request->site_id);
+            })
+            ->when(!empty($request->supervisor_id) && $request->supervisor_id !== 'All', function ($query) use ($request) {
+                $query->where('raw_material_stock_transactions.supervisor_id', $request->supervisor_id);
+            })
+            ->when(!empty($request->type) && $request->type !== 'All', function ($query) use ($request) {
+                $query->where('raw_material_stock_transactions.type', $request->type);
+            })
+            ->when(!empty($request->s_date) || !empty($request->e_date), function ($query) use ($request) {
+                $startDate = !empty($request->s_date)
+                    ? date('Y-m-d 00:00:00', strtotime($request->s_date))
+                    : null;
 
-        $user = Auth::user();
-        $role = $user->roles->first();
+                $endDate = !empty($request->e_date)
+                    ? date('Y-m-d 23:59:59', strtotime($request->e_date))
+                    : ($startDate ? date('Y-m-d 23:59:59', strtotime($request->s_date)) : null);
 
-        if ($role && $role->name === 'Supervisor') {
-            $query->where('raw_material_stock_transactions.created_by', $user->id);
-        }
-
-        if ($request->filled('material_id')) {
-            $query->where('raw_material_stock_transactions.material_id', $request->material_id);
-        }
-
-        if ($request->filled('site_id')) {
-            $query->where('raw_material_stock_transactions.site_id', $request->site_id);
-        }
-
-        if ($request->filled('supervisor_id')) {
-            $query->where('raw_material_stock_transactions.supervisor_id', $request->supervisor_id);
-        }
-
-        if ($request->filled('supplier_id')) {
-            $query->where('raw_material_stock_transactions.supplier_id', $request->supplier_id);
-        }
-
-        if ($request->filled('type')) {
-            $query->where('raw_material_stock_transactions.type', $request->type);
-        }
-
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $start = Carbon::parse($request->start_date)->startOfDay();
-            $end = Carbon::parse($request->end_date)->endOfDay();
-            $query->whereBetween('raw_material_stock_transactions.created_at', [$start, $end]);
-        } elseif ($request->filled('start_date')) {
-            $start = Carbon::parse($request->start_date)->startOfDay();
-            $query->where('raw_material_stock_transactions.created_at', '>=', $start);
-        } elseif ($request->filled('end_date')) {
-            $end = Carbon::parse($request->end_date)->endOfDay();
-            $query->where('raw_material_stock_transactions.created_at', '<=', $end);
-        }
-
-        $data = $query->orderBy('raw_material_stock_transactions.id', 'DESC');
-
+                if ($startDate && $endDate) {
+                    $query->whereBetween('raw_material_stock_transactions.created_at', [$startDate, $endDate]);
+                } elseif ($startDate) {
+                    $query->where('raw_material_stock_transactions.created_at', '>=', $startDate);
+                } elseif ($endDate) {
+                    $query->where('raw_material_stock_transactions.created_at', '<=', $endDate);
+                }
+            })->orderBy('raw_material_stock_transactions.created_at', 'DESC');
 
         if (request()->ajax()) {
-            return DataTables::of($data)
+            return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     $show = '';
@@ -294,9 +279,7 @@ class RawMaterialMasterController extends Controller
             $materials = RawMaterialMaster::select('id', 'material_name')->orderBy('material_name', 'asc')->get();
             $sites = SiteMaster::select('id', 'site_name')->orderBy('site_name', 'asc')->get();
             $supervisors = User::role('Supervisor')->select('id', 'name')->orderBy('name', 'asc')->get();
-
             return view('rawmaterialmaster::transaction', compact('materials', 'sites', 'supervisors'));
-            // return view('rawmaterialmaster::transaction');
         }
     }
 

@@ -140,7 +140,7 @@ class PermissionTableSeeder extends Seeder
             ['title_tag' => 'Party', 'name' => 'party-edit', 'title' => 'Edit'],
             ['title_tag' => 'Party', 'name' => 'party-delete', 'title' => 'Delete'],
 
-            ['title_tag' => 'Report', 'name' => 'report-ledger-list', 'title' => 'Ledger Report'],
+            ['title_tag' => 'Report', 'name' => 'payment-ledger-list', 'title' => 'Ledger Report'],
             ['title_tag' => 'Report', 'name' => 'report-attendance-list', 'title' => 'Attendance Report'],
         ];
 
